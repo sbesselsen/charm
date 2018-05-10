@@ -46,13 +46,17 @@ class ParseException extends \Exception
     /**
      * @param string $string
      * @param int $offset
+     * @param int $previewLength
      *
      * @return ParseException
      */
-    public static function unexpectedInput(string $string, int $offset)
+    public static function unexpectedInput(string $string, int $offset, int $previewLength = 30)
     {
         $position = TokenizerPosition::fromOffsetInString($string, $offset);
-        $input = substr($string, $offset, 1);
+        $input = substr($string, $offset, $previewLength);
+        if (strlen($string) > $offset + $previewLength) {
+            $input .= '...';
+        }
         return new static(
             "Unexpected input at line {$position->line}, column {$position->column}: {$input}",
             $position
