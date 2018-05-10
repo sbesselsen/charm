@@ -1,5 +1,6 @@
 {
     "name": "sbesselsen/chompy",
+    "description": "A fast and simple PHP 7 parser framework",
     "type": "library",
     "license": "MIT",
     "authors": [
