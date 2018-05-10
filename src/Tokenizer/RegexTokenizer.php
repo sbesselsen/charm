@@ -29,24 +29,12 @@ final class RegexTokenizer implements TokenizerInterface
 
     public function tokenize(string $string): array
     {
-        preg_match_all(
-            $this->pattern,
-            $string,
-            $matches,
-            PREG_SET_ORDER | PREG_OFFSET_CAPTURE
-        );
-
-        // Now normalize the matches.
-        $normalizedMatches = [];
         $offset = 0;
-        foreach ($matches as $index => $match) {
-            foreach ($match as $k => $v) {
-                if (is_int($k) || $v[1] === -1) {
+        $normalizedMatches = [];
+        while (preg_match($this->pattern, $string, $match, 0, $offset)) {
+            foreach ($match as $k => $matchString) {
+                if (is_int($k) || $matchString === '') {
                     continue;
-                }
-                [$matchString, $matchOffset] = $v;
-                if ($matchOffset > $offset) {
-                    throw ParseException::unexpectedInput($string, $offset);
                 }
                 $normalizedMatches[] = [$k, $matchString, $offset];
                 $offset += strlen($matchString);
