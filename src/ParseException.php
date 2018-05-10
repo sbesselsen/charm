@@ -59,4 +59,18 @@ class ParseException extends \Exception
         );
     }
 
+    /**
+     * @param string $string
+     *
+     * @return ParseException
+     */
+    public static function unexpectedEndOfInput(string $string)
+    {
+        $position = TokenizerPosition::fromOffsetInString($string, strlen($string));
+        return new static(
+            "Unexpected end of input at line {$position->line}, column {$position->column}",
+            $position
+        );
+    }
+
 }

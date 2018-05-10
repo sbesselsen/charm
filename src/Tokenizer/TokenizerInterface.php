@@ -4,6 +4,12 @@ namespace Chompy\Tokenizer;
 
 interface TokenizerInterface
 {
+    const TOKEN_TYPE = 0;
+
+    const TOKEN_STRING = 1;
+
+    const TOKEN_OFFSET = 2;
+
     /**
      * Tokenizing a string.
      *
