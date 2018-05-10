@@ -1,10 +1,11 @@
 <?php
 
-namespace Chompy\Tokenizer;
+namespace Chompy;
 
+use Chompy\Tokenizer\TokenizerPosition;
 use Throwable;
 
-class TokenizerException extends \Exception
+class ParseException extends \Exception
 {
     /**
      * The position where the exception occurred.
@@ -25,7 +26,7 @@ class TokenizerException extends \Exception
     }
 
     /**
-     * TokenizerException constructor.
+     * ParseException constructor.
      * @param string $message
      * @param TokenizerPosition $position
      *   The position where the exception occurred.
@@ -41,4 +42,21 @@ class TokenizerException extends \Exception
         parent::__construct($message, $code, $previous);
         $this->position = $position;
     }
+
+    /**
+     * @param string $string
+     * @param int $offset
+     *
+     * @return ParseException
+     */
+    public static function unexpectedInput(string $string, int $offset)
+    {
+        $position = TokenizerPosition::fromOffsetInString($string, $offset);
+        $input = substr($string, $offset, 1);
+        return new static(
+            "Unexpected input at line {$position->line}, column {$position->column}: {$input}",
+            $position
+        );
+    }
+
 }

@@ -2,6 +2,8 @@
 
 namespace Chompy\Tokenizer;
 
+use Chompy\ParseException;
+
 final class RegexTokenizer implements TokenizerInterface
 {
     /**
@@ -25,7 +27,7 @@ final class RegexTokenizer implements TokenizerInterface
         $this->pattern = '(' . implode('|', $patternParts) . ')ADs';
     }
 
-    public function tokenize(string $string): TokenStreamInterface
+    public function tokenize(string $string): array
     {
         preg_match_all(
             $this->pattern,
@@ -44,34 +46,18 @@ final class RegexTokenizer implements TokenizerInterface
                 }
                 [$matchString, $matchOffset] = $v;
                 if ($matchOffset > $offset) {
-                    throw $this->unexpectedInputException($string, $offset);
+                    throw ParseException::unexpectedInput($string, $offset);
                 }
-                $offset += strlen($matchString);
                 $normalizedMatches[] = [$k, $matchString, $offset];
+                $offset += strlen($matchString);
                 break;
             }
         }
 
         if ($offset < strlen($string)) {
-            throw $this->unexpectedInputException($string, $offset);
+            throw ParseException::unexpectedInput($string, $offset);
         }
 
-        return new RegexTokenStream($string, $normalizedMatches);
-    }
-
-    /**
-     * @param string $string
-     * @param int $offset
-     *
-     * @return TokenizerException
-     */
-    private function unexpectedInputException(string $string, int $offset)
-    {
-        $position = TokenizerPosition::fromOffsetInString($string, $offset);
-        $input = substr($string, $offset, 1);
-        return new TokenizerException(
-            "Unexpected input at line {$position->line}, column {$position->column}: {$input}",
-            $position
-        );
+        return $normalizedMatches;
     }
 }
