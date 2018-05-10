@@ -1,0 +1,19 @@
+{
+    "name": "sbesselsen/chompy",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sebastiaan Besselsen",
+            "email": "sebastiaan.besselsen@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "autoload": {
+         "psr-4": {
+             "Chompy\\": "src/"
+         }
+    }
+}
