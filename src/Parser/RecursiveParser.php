@@ -111,6 +111,18 @@ abstract class RecursiveParser implements ParserInterface
     }
 
     /**
+     * Peek ahead at future tokens.
+     *
+     * @param int $n
+     *   Number of tokens to peek ahead.
+     * @return array|null
+     */
+    protected function peekAhead(int $n)
+    {
+        return $this->tokens[$this->tokenIndex + $n] ?? null;
+    }
+
+    /**
      * Shift one token ahead.
      */
     protected function shift()
