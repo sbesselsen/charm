@@ -16,5 +16,8 @@
          "psr-4": {
              "Chompy\\": "src/"
          }
+    },
+    "require-dev": {
+        "nikic/php-parser": "^4.0"
     }
 }
