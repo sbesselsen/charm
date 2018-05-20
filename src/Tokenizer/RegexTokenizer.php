@@ -52,6 +52,7 @@ final class RegexTokenizer implements TokenizerInterface
         $normalizedMatches = [];
         $strlen = strlen($string);
         while ($offset < $strlen) {
+            $prevOffset = $offset;
             $prefix = $string{$offset};
             $pattern = $this->patternsByPrefix[$prefix];
             if (!preg_match($pattern, $string, $match, 0, $offset)) {
@@ -63,6 +64,9 @@ final class RegexTokenizer implements TokenizerInterface
                 }
                 $normalizedMatches[] = [$k, $matchString, $offset];
                 $offset += strlen($matchString);
+                break;
+            }
+            if ($offset === $prevOffset) {
                 break;
             }
         }
