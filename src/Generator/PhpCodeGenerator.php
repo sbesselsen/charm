@@ -272,18 +272,18 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
         $rule = $grammar->rules[$reduceRuleIndex];
 
-        foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
-            $output[] = new Stmt\Expression(
-                new Assign(
-                    new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex),
-                    new FuncCall(new Name('array_pop'), [
-                        new Arg(new Variable(self::VARIABLE_OUTPUT_STACK))
-                    ])
-                )
-            );
-        }
-
         if ($rule->reduceFunction) {
+            foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
+                $output[] = new Stmt\Expression(
+                    new Assign(
+                        new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex),
+                        new FuncCall(new Name('array_pop'), [
+                            new Arg(new Variable(self::VARIABLE_OUTPUT_STACK))
+                        ])
+                    )
+                );
+            }
+
             $args = [];
             foreach (array_keys($rule->input) as $reduceVarIndex) {
                 $args[] = new Arg(new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex));
@@ -294,11 +294,15 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                 $args
             );
         } else {
-            $arrayItems = [];
-            foreach (array_keys($rule->input) as $reduceVarIndex) {
-                $arrayItems[] = new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex);
+            foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
+                $output[] = new Stmt\Expression(
+                    new FuncCall(new Name('array_pop'), [
+                        new Arg(new Variable(self::VARIABLE_OUTPUT_STACK))
+                    ])
+                );
             }
-            $reduceData = new Array_($arrayItems);
+
+            $reduceData = new Expr\ConstFetch(new Name('null'));
         }
 
         if ($reduceRuleIndex === 0) {
