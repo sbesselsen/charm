@@ -12,6 +12,8 @@ final class LalrAnalyzer implements AnalyzerInterface
 {
     public function generateStateTable(Grammar $grammar): StateTable
     {
+        $this->validateGrammar($grammar);
+
         // First build the item sets.
         $itemSets = $this->generateItemSets($grammar);
 
@@ -166,5 +168,22 @@ final class LalrAnalyzer implements AnalyzerInterface
      */
     private function itemKey(Item $item): string {
         return $item->ruleIndex . ':' . $item->position;
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @throws \Exception
+     *   If the grammar is invalid.
+     */
+    private function validateGrammar(Grammar $grammar)
+    {
+        if (isset($grammar->tokens['$'])) {
+            throw new \Exception('Invalid token name: $');
+        }
+        foreach ($grammar->rules as $rule) {
+            if (isset ($grammar->tokens[$rule->output])) {
+                throw new \Exception('Nonterminal name conflicts with token name: ' . $rule->output);
+            }
+        }
     }
 }

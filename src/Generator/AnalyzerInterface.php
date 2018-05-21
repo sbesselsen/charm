@@ -11,6 +11,8 @@ interface AnalyzerInterface
      * @param Grammar $grammar
      *
      * @return StateTable
+     * @throws \Exception
+     *   If the grammar is invalid.
      */
     public function generateStateTable(Grammar $grammar): StateTable;
 }
