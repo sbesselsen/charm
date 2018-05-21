@@ -33,8 +33,8 @@ final class LalrAnalyzer implements AnalyzerInterface
             }
         }
 
-        // TODO: reduces!
-        // throw new \LogicException('Reduces not implemented yet!');
+        $firstSets = $this->generateFirstSets($grammar);
+        throw new \LogicException('Reduces not implemented yet!');
 
         return $stateTable;
     }
@@ -148,6 +148,70 @@ final class LalrAnalyzer implements AnalyzerInterface
                 }
             }
         }
+    }
+
+    /**
+     * @param Grammar $grammar
+     *
+     * @return array
+     *   [string nonterminal => array firsts]
+     */
+    private function generateFirstSets(Grammar $grammar): array
+    {
+        $firstTokens = [];
+        $firstNonterminals = [];
+        $nullable = [];
+
+        // Get direct first tokens + nonterminals.
+        foreach ($grammar->rules as $rule) {
+            if (isset ($rule->input[0])) {
+                $firstElement = $rule->input[0];
+                if (isset ($grammar->tokens[$firstElement])) {
+                    $firstTokens[$rule->output][$firstElement] = $firstElement;
+                } else {
+                    $firstNonterminals[$rule->output][$firstElement] = $firstElement;
+                }
+            } else {
+                $nullable[$rule->output] = $rule->output;
+            }
+        }
+
+        // Process elements that may be empty.
+        foreach ($grammar->rules as $rule) {
+            foreach ($rule->input as $inputElement) {
+                if (isset ($grammar->tokens[$inputElement])) {
+                    $firstTokens[$rule->output][$inputElement] = $inputElement;
+                } else {
+                    $firstNonterminals[$rule->output][$inputElement] = $inputElement;
+                }
+                if (!isset ($nullable[$inputElement])) {
+                    break;
+                }
+            }
+        }
+
+        // Close the first sets.
+        $changed = true;
+        while ($changed) {
+            $changed = false;
+            foreach ($firstNonterminals as $element => $elementFirstNonterminals) {
+                foreach ($elementFirstNonterminals as $firstNonterminal) {
+                    $oldFirstTokens = $firstTokens[$element] ?? [];
+                    $newFirstTokens = array_unique(
+                        array_merge(
+                            $oldFirstTokens,
+                            $firstTokens[$firstNonterminal] ?? []
+                        )
+                    );
+                    if (count($newFirstTokens) > count($oldFirstTokens)) {
+                        $firstTokens[$element] = $newFirstTokens;
+                        $changed = true;
+                    }
+                }
+            }
+        }
+
+        return $firstTokens;
     }
 
     /**
