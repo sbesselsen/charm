@@ -19,4 +19,12 @@ class ItemSet
      *   The additional items.
      */
     public $closureItems = [];
+
+    /**
+     * The transitions out of this item set.
+     *
+     * @var array
+     *   [string element => int target item set]
+     */
+    public $transitions = [];
 }

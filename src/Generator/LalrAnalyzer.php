@@ -13,14 +13,14 @@ final class LalrAnalyzer implements AnalyzerInterface
     public function generateStateTable(Grammar $grammar): StateTable
     {
         // First build the item sets.
-        [$itemSets, $transitions] = $this->generateItemSets($grammar);
+        $itemSets = $this->generateItemSets($grammar);
 
         $stateTable = new StateTable();
         foreach ($itemSets as $itemSetIndex => $itemSet) {
             $state = new State();
             $stateTable->states[$itemSetIndex] = $state;
 
-            foreach (($transitions[$itemSetIndex] ?? []) as $element => $targetStateIndex) {
+            foreach ($itemSet->transitions as $element => $targetStateIndex) {
                 if (isset ($grammar->tokens[$element])) {
                     // This is a token; shift!
                     $state->shifts[$element] = $targetStateIndex;
@@ -32,7 +32,7 @@ final class LalrAnalyzer implements AnalyzerInterface
         }
 
         // TODO: reduces!
-        throw new \LogicException('Reduces not implemented yet!');
+        // throw new \LogicException('Reduces not implemented yet!');
 
         return $stateTable;
     }
@@ -40,11 +40,11 @@ final class LalrAnalyzer implements AnalyzerInterface
     /**
      * @param Grammar $grammar
      *
-     * @return array
-     *   [ItemSet[], array]
+     * @return ItemSet[]
      */
     private function generateItemSets(Grammar $grammar): array
     {
+        /** @var ItemSet[] $itemSets */
         $itemSets = [];
 
         $itemSetIndex = [];
@@ -61,8 +61,6 @@ final class LalrAnalyzer implements AnalyzerInterface
             $itemSets[] = $itemSet0;
         }
 
-        $transitions = [];
-
         // Walk down through all the item sets to see if they need expansion.
         for ($i = 0; $i < count($itemSets); $i++) {
             foreach ($this->itemSetExpansions($itemSets[$i], $grammar) as $element => $itemSetExpansion) {
@@ -72,11 +70,11 @@ final class LalrAnalyzer implements AnalyzerInterface
                     $itemSetIndex[$expansionKey] = count($itemSets);
                     $itemSets[] = $itemSetExpansion;
                 }
-                $transitions[$i][$element] = $itemSetIndex[$expansionKey];
+                $itemSets[$i]->transitions[$element] = $itemSetIndex[$expansionKey];
             }
         }
 
-        return [$itemSets, $transitions];
+        return $itemSets;
     }
 
     /**
