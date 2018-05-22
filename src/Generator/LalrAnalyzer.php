@@ -10,6 +10,9 @@ use Chompy\Generator\StateTable\StateTable;
 
 final class LalrAnalyzer implements AnalyzerInterface
 {
+    const END_VIRTUAL_TOKEN = '$';
+    const START_ELEMENT = 'Start';
+
     public function generateStateTable(Grammar $grammar): StateTable
     {
         $this->validateGrammar($grammar);
@@ -33,7 +36,21 @@ final class LalrAnalyzer implements AnalyzerInterface
             }
         }
 
+        echo "Item sets:\n";
+        echo $this->dumpItemSets($grammar, $itemSets);
+        echo "\n";
+
         $firstSets = $this->generateFirstSets($grammar);
+
+        echo "First sets:\n";
+        echo $this->dumpFirstSets($grammar, $firstSets);
+        echo "\n";
+
+        $followSets = $this->generateFollowSets($grammar, $firstSets);
+        echo "Follow sets:\n";
+        echo $this->dumpFollowSets($grammar, $followSets);
+        echo "\n";
+        exit;
         throw new \LogicException('Reduces not implemented yet!');
 
         return $stateTable;
@@ -158,60 +175,69 @@ final class LalrAnalyzer implements AnalyzerInterface
      */
     private function generateFirstSets(Grammar $grammar): array
     {
-        $firstTokens = [];
-        $firstNonterminals = [];
-        $nullable = [];
-
-        // Get direct first tokens + nonterminals.
-        foreach ($grammar->rules as $rule) {
-            if (isset ($rule->input[0])) {
-                $firstElement = $rule->input[0];
-                if (isset ($grammar->tokens[$firstElement])) {
-                    $firstTokens[$rule->output][$firstElement] = $firstElement;
-                } else {
-                    $firstNonterminals[$rule->output][$firstElement] = $firstElement;
-                }
-            } else {
-                $nullable[$rule->output] = $rule->output;
-            }
+        $firstSets = [];
+        foreach (array_keys($grammar->tokens) as $token) {
+            $firstSets[$token] = [$token => $token];
         }
 
-        // Process elements that may be empty.
-        foreach ($grammar->rules as $rule) {
-            foreach ($rule->input as $inputElement) {
-                if (isset ($grammar->tokens[$inputElement])) {
-                    $firstTokens[$rule->output][$inputElement] = $inputElement;
-                } else {
-                    $firstNonterminals[$rule->output][$inputElement] = $inputElement;
-                }
-                if (!isset ($nullable[$inputElement])) {
-                    break;
-                }
-            }
-        }
-
-        // Close the first sets.
         $changed = true;
         while ($changed) {
             $changed = false;
-            foreach ($firstNonterminals as $element => $elementFirstNonterminals) {
-                foreach ($elementFirstNonterminals as $firstNonterminal) {
-                    $oldFirstTokens = $firstTokens[$element] ?? [];
-                    $newFirstTokens = array_unique(
-                        array_merge(
-                            $oldFirstTokens,
-                            $firstTokens[$firstNonterminal] ?? []
-                        )
-                    );
-                    if (count($newFirstTokens) > count($oldFirstTokens)) {
-                        $firstTokens[$element] = $newFirstTokens;
+            foreach ($grammar->rules as $rule) {
+                $firstItem = $rule->input[0];
+                if (!isset ($firstSets[$firstItem])) {
+                    continue;
+                }
+                $oldFirstSet = $firstSets[$rule->output] ?? [];
+                $newFirstSet = array_merge($oldFirstSet, $firstSets[$firstItem]);
+                if (array_diff_key($newFirstSet, $oldFirstSet)) {
+                    $changed = true;
+                    $firstSets[$rule->output] = $newFirstSet;
+                }
+            }
+        }
+
+        return $firstSets;
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param array $firstSets
+     *
+     * @return array
+     *   [string nonterminal => [string followTokens]]
+     */
+    private function generateFollowSets(Grammar $grammar, array $firstSets) {
+        $followSets = [];
+        foreach ($grammar->rules as $rule) {
+            $followSets[$rule->output] = [];
+        }
+        $followSets[self::START_ELEMENT] = [self::END_VIRTUAL_TOKEN => self::END_VIRTUAL_TOKEN];
+
+        $changed = true;
+        while ($changed) {
+            $changed = false;
+            foreach ($grammar->rules as $rule) {
+                $last = count($rule->input) - 1;
+                foreach ($rule->input as $i => $element) {
+                    if (isset ($grammar->tokens[$element])) {
+                        continue;
+                    }
+                    $oldFollowSet = $followSets[$element];
+                    if ($i === $last) {
+                        $newFollowSet = $followSets[$rule->output];
+                    } else {
+                        $newFollowSet = $firstSets[$rule->input[$i + 1]];
+                    }
+                    if (array_diff_key($newFollowSet, $oldFollowSet)) {
                         $changed = true;
+                        $followSets[$element] = array_merge($oldFollowSet, $newFollowSet);
                     }
                 }
             }
         }
 
-        return $firstTokens;
+        return $followSets;
     }
 
     /**
@@ -241,13 +267,88 @@ final class LalrAnalyzer implements AnalyzerInterface
      */
     private function validateGrammar(Grammar $grammar)
     {
-        if (isset($grammar->tokens['$'])) {
+        if (isset($grammar->tokens[self::END_VIRTUAL_TOKEN])) {
             throw new \Exception('Invalid token name: $');
         }
-        foreach ($grammar->rules as $rule) {
+        $startRuleIndex = null;
+        foreach ($grammar->rules as $ruleIndex => $rule) {
+            if ($rule->output === self::START_ELEMENT) {
+                if ($startRuleIndex !== null) {
+                    throw new \Exception('Cannot have two rules named ' . self::START_ELEMENT);
+                }
+                $startRuleIndex = $ruleIndex;
+            }
             if (isset ($grammar->tokens[$rule->output])) {
                 throw new \Exception('Nonterminal name conflicts with token name: ' . $rule->output);
             }
         }
+        if ($startRuleIndex === null) {
+            throw new \Exception('Must have exactly one rule named ' . self::START_ELEMENT);
+        }
+        if ($startRuleIndex !== 0) {
+            $startRules = array_splice($grammar->rules, $startRuleIndex, 1);
+            $grammar->rules = array_merge($startRules, $grammar->rules);
+        }
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param ItemSet[] $itemSets
+     * @return string
+     */
+    private function dumpItemSets(Grammar $grammar, array $itemSets)
+    {
+        $lines = [];
+        foreach ($itemSets as $i => $itemSet) {
+            $lines[] = "I{$i}:";
+            foreach ($itemSet->items as $item) {
+                $rule = $grammar->rules[$item->ruleIndex];
+                $input = $rule->input;
+                array_splice($input, $item->position, 0, ['@']);
+                $lines[] = "  {$rule->output} -> " . implode(' ', $input);
+            }
+            foreach ($itemSet->closureItems as $item) {
+                $rule = $grammar->rules[$item->ruleIndex];
+                $input = $rule->input;
+                array_splice($input, $item->position, 0, ['@']);
+                $lines[] = "  + {$rule->output} -> " . implode(' ', $input);
+            }
+            foreach ($itemSet->transitions as $element => $targetItemSet) {
+                $lines[] = '  ' . $element . ' > ' . $targetItemSet;
+            }
+            $lines[] = '';
+        }
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param array $firstSets
+     * @return string
+     */
+    private function dumpFirstSets(Grammar $grammar, array $firstSets)
+    {
+        $lines = [];
+        foreach ($firstSets as $element => $firsts) {
+            if (isset ($grammar->tokens[$element])) {
+                continue;
+            }
+            $lines[] = "{$element}:";
+            foreach ($firsts as $first) {
+                $lines[] = "  - {$first}";
+            }
+            $lines[] = '';
+        }
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param array $followSets
+     * @return string
+     */
+    private function dumpFollowSets(Grammar $grammar, array $followSets)
+    {
+        return $this->dumpFirstSets($grammar, $followSets);
     }
 }
