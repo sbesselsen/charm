@@ -21,10 +21,10 @@ class Grammar
     public $rules = [];
 
     /**
-     * Infix operators info.
+     * Operator info.
      *
      * @var OperatorInfo[]
      *   Array of (operator name => OperatorInfo)
      */
-    public $infixOperators = [];
+    public $operators = [];
 }

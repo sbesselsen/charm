@@ -5,6 +5,8 @@ namespace Chompy\Generator;
 use Chompy\Generator\Analysis\ItemSet;
 use Chompy\Generator\Analysis\Item;
 use Chompy\Generator\Grammar\Grammar;
+use Chompy\Generator\Grammar\OperatorInfo;
+use Chompy\Generator\Grammar\Rule;
 use Chompy\Generator\StateTable\State;
 use Chompy\Generator\StateTable\StateTable;
 
@@ -13,13 +15,24 @@ final class LalrAnalyzer implements AnalyzerInterface
     const END_VIRTUAL_TOKEN = '$';
     const START_ELEMENT = 'Start';
 
+    const RESOLUTION_SHIFT = 'shift';
+    const RESOLUTION_REDUCE = 'reduce';
+    const RESOLUTION_NEITHER = 'neither';
+
     public function generateStateTable(Grammar $grammar): StateTable
     {
         $this->validateGrammar($grammar);
 
-        // First build the item sets.
+        // First generate the item sets.
         $itemSets = $this->generateItemSets($grammar);
 
+        // Then the first sets.
+        $firstSets = $this->generateFirstSets($grammar);
+
+        // And the follow sets.
+        $followSets = $this->generateFollowSets($grammar, $firstSets);
+
+        // Then generate the state table.
         $stateTable = new StateTable();
         foreach ($itemSets as $itemSetIndex => $itemSet) {
             $state = new State();
@@ -34,24 +47,34 @@ final class LalrAnalyzer implements AnalyzerInterface
                     $state->gotos[$element] = $targetStateIndex;
                 }
             }
+
+            foreach ($itemSet->items as $item) {
+                $rule = $grammar->rules[$item->ruleIndex];
+                if ($item->position !== count($rule->input)) {
+                    // No reduce possible: rule is not at end.
+                    continue;
+                }
+
+                foreach ($followSets[$rule->output] as $followElement) {
+                    if (isset ($state->shifts[$followElement])) {
+                        // Shift/reduce conflict; try to resolve!
+                        switch ($this->resolveShiftReduceConflict($grammar, $followElement, $item->ruleIndex)) {
+                            case self::RESOLUTION_REDUCE:
+                                $state->reduces[$followElement] = $item->ruleIndex;
+                                unset ($state->shifts[$followElement]);
+                                break;
+                            case self::RESOLUTION_SHIFT:
+                                break;
+                            case self::RESOLUTION_NEITHER:
+                                unset ($state->shifts[$followElement]);
+                                break;
+                        }
+                    } else {
+                        $state->reduces[$followElement] = $item->ruleIndex;
+                    }
+                }
+            }
         }
-
-        echo "Item sets:\n";
-        echo $this->dumpItemSets($grammar, $itemSets);
-        echo "\n";
-
-        $firstSets = $this->generateFirstSets($grammar);
-
-        echo "First sets:\n";
-        echo $this->dumpFirstSets($grammar, $firstSets);
-        echo "\n";
-
-        $followSets = $this->generateFollowSets($grammar, $firstSets);
-        echo "Follow sets:\n";
-        echo $this->dumpFollowSets($grammar, $followSets);
-        echo "\n";
-        exit;
-        throw new \LogicException('Reduces not implemented yet!');
 
         return $stateTable;
     }
@@ -289,6 +312,29 @@ final class LalrAnalyzer implements AnalyzerInterface
             $startRules = array_splice($grammar->rules, $startRuleIndex, 1);
             $grammar->rules = array_merge($startRules, $grammar->rules);
         }
+
+        // Make sure all operators on each precedence level have the same associativity.
+        $operatorsByPrecedence = [];
+        foreach ($grammar->operators as $operator => $operatorInfo) {
+            if (!isset ($operatorsByPrecedence[$operatorInfo->precedence])) {
+                $operatorsByPrecedence[$operatorInfo->precedence] = [];
+            }
+            $operatorsByPrecedence[$operatorInfo->precedence][$operator] = $operatorInfo;
+        }
+        $associativity = NULL;
+        $associativityOperator = NULL;
+        foreach ($operatorsByPrecedence as $operators) {
+            foreach ($operators as $operator => $operatorInfo) {
+                /** @var OperatorInfo $operatorInfo */
+                if ($associativity === null) {
+                    $associativity = $operatorInfo->associativity;
+                    $associativityOperator = $operator;
+                } elseif ($associativity !== $operatorInfo->associativity) {
+                    throw new \Exception('Operators ' . $associativityOperator . ' and ' . $operator
+                        . ' have the same precedence, but different associativity');
+                }
+            }
+        }
     }
 
     /**
@@ -303,15 +349,11 @@ final class LalrAnalyzer implements AnalyzerInterface
             $lines[] = "I{$i}:";
             foreach ($itemSet->items as $item) {
                 $rule = $grammar->rules[$item->ruleIndex];
-                $input = $rule->input;
-                array_splice($input, $item->position, 0, ['@']);
-                $lines[] = "  {$rule->output} -> " . implode(' ', $input);
+                $lines[] = "  " . $this->dumpRule($rule, $item->position);
             }
             foreach ($itemSet->closureItems as $item) {
                 $rule = $grammar->rules[$item->ruleIndex];
-                $input = $rule->input;
-                array_splice($input, $item->position, 0, ['@']);
-                $lines[] = "  + {$rule->output} -> " . implode(' ', $input);
+                $lines[] = "  + " . $this->dumpRule($rule, $item->position);
             }
             foreach ($itemSet->transitions as $element => $targetItemSet) {
                 $lines[] = '  ' . $element . ' > ' . $targetItemSet;
@@ -319,6 +361,19 @@ final class LalrAnalyzer implements AnalyzerInterface
             $lines[] = '';
         }
         return implode("\n", $lines);
+    }
+
+    /**
+     * @param Rule $rule
+     * @param int|null $position
+     * @return string
+     */
+    private function dumpRule(Rule $rule, int $position = null) {
+        $input = $rule->input;
+        if ($position !== null) {
+            array_splice($input, $position, 0, ['@']);
+        }
+        return "{$rule->output} -> " . implode(' ', $input);
     }
 
     /**
@@ -350,5 +405,57 @@ final class LalrAnalyzer implements AnalyzerInterface
     private function dumpFollowSets(Grammar $grammar, array $followSets)
     {
         return $this->dumpFirstSets($grammar, $followSets);
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @param string $shiftElement
+     * @param int $reduceRuleIndex
+     *
+     * @return string
+     *   One of self::RESOLUTION_*.
+     *
+     * @throws \Exception
+     */
+    private function resolveShiftReduceConflict(Grammar $grammar, string $shiftElement, int $reduceRuleIndex)
+    {
+        // Find the operator in the reduce rule.
+        $reduceRule = $grammar->rules[$reduceRuleIndex];
+        $lastReduceOperator = null;
+        foreach (array_reverse($reduceRule->input) as $element) {
+            if (isset ($grammar->operators[$element])) {
+                $lastReduceOperator = $element;
+            }
+        }
+
+        if ($lastReduceOperator === null || !isset ($grammar->operators[$shiftElement])) {
+            throw new \Exception('Shift/reduce conflict when encountering token '
+                . $shiftElement . ' after rule ' . $this->dumpRule($reduceRule));
+        }
+
+        $reduceOperatorInfo = $grammar->operators[$lastReduceOperator];
+        $shiftOperatorInfo = $grammar->operators[$shiftElement];
+
+        if ($reduceOperatorInfo->precedence > $shiftOperatorInfo->precedence) {
+            // Reduce!
+            return self::RESOLUTION_REDUCE;
+        }
+        if ($reduceOperatorInfo->precedence < $shiftOperatorInfo->precedence) {
+            // Reduce!
+            return self::RESOLUTION_SHIFT;
+        }
+
+        // We can now check associativity only on the reduce operator, because if both operators have the same
+        // precedence, then they must have the same associativity (this is checked in validateGrammar()).
+        if ($reduceOperatorInfo->associativity === OperatorInfo::ASSOC_LEFT) {
+            // Left associative: reduce.
+            return self::RESOLUTION_REDUCE;
+        }
+        if ($reduceOperatorInfo->associativity === OperatorInfo::ASSOC_RIGHT) {
+            // Right associative: shift.
+            return self::RESOLUTION_SHIFT;
+        }
+
+        return self::RESOLUTION_NEITHER;
     }
 }
