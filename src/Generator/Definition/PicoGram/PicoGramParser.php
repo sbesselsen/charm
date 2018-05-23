@@ -45,7 +45,13 @@ final class PicoGramParser extends AbstractPicoGramParser
 
     protected function reduceTokenDef($type, $p2, $name, $p4, $pattern)
     {
-        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $pattern[0]), $name[0]];
+        $patternData = $pattern[0];
+        if ($patternData[0] === '"') {
+            $patternData = substr($patternData, 1, -1);
+            $patternData = str_replace(['\n', '\r', '\t'], ["\n", "\r", "\t"], $patternData);
+            $patternData = stripslashes($patternData);
+        }
+        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $patternData), $name[0]];
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)

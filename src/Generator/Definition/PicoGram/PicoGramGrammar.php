@@ -22,6 +22,7 @@ final class PicoGramGrammar
     const TOKEN_SPACE = 'SPACE';
     const TOKEN_EOL = 'EOL';
     const TOKEN_ROL = 'ROL';
+    const TOKEN_QUOTED = 'QUOTED';
 
     const ELEM_TOKEN_DEF = 'TokenDef';
     const ELEM_OPERATOR_DEF = 'OperatorDef';
@@ -31,6 +32,7 @@ final class PicoGramGrammar
     const ELEM_ITEM = 'Item';
     const ELEM_ASSOC_DEF = 'AssocDef';
     const ELEM_SEQUENCE = 'Sequence';
+    const ELEM_TOKEN_TYPE = 'TokenType';
 
     /**
      * @return Grammar
@@ -43,7 +45,6 @@ final class PicoGramGrammar
         $grammar->tokens[self::TOKEN_TOKEN]        = new TokenInfo(TokenInfo::TYPE_STRING, 'token');
         $grammar->tokens[self::TOKEN_REGEX]        = new TokenInfo(TokenInfo::TYPE_STRING, 'regex');
         $grammar->tokens[self::TOKEN_OPERATOR]     = new TokenInfo(TokenInfo::TYPE_STRING, 'operator');
-        $grammar->tokens[self::TOKEN_NAME]         = new TokenInfo(TokenInfo::TYPE_REGEX, '[a-zA-Z_][a-zA-Z_0-9]*');
         $grammar->tokens[self::TOKEN_INTEGER]      = new TokenInfo(TokenInfo::TYPE_REGEX, '[0-9]+');
         $grammar->tokens[self::TOKEN_LEFT]         = new TokenInfo(TokenInfo::TYPE_STRING, 'left');
         $grammar->tokens[self::TOKEN_RIGHT]        = new TokenInfo(TokenInfo::TYPE_STRING, 'right');
@@ -53,7 +54,9 @@ final class PicoGramGrammar
         $grammar->tokens[self::TOKEN_CURLY_CLOSE]  = new TokenInfo(TokenInfo::TYPE_STRING, '}');
         $grammar->tokens[self::TOKEN_SPACE]        = new TokenInfo(TokenInfo::TYPE_STRING, ' ');
         $grammar->tokens[self::TOKEN_EOL]          = new TokenInfo(TokenInfo::TYPE_STRING, "\n");
-        $grammar->tokens[self::TOKEN_ROL]          = new TokenInfo(TokenInfo::TYPE_REGEX, "[^\n]*");
+        $grammar->tokens[self::TOKEN_ROL]          = new TokenInfo(TokenInfo::TYPE_REGEX, '[^"][^\n]*');
+        $grammar->tokens[self::TOKEN_QUOTED]       = new TokenInfo(TokenInfo::TYPE_REGEX, '"[^\n]*?"');
+        $grammar->tokens[self::TOKEN_NAME]         = new TokenInfo(TokenInfo::TYPE_REGEX, '[a-zA-Z_][a-zA-Z_0-9]*');
 
         // Rules.
         $grammar->rules[] = new Rule(self::ELEM_START, [self::ELEM_ITEMS], 'reduceGrammar');
@@ -66,11 +69,14 @@ final class PicoGramGrammar
         $grammar->rules[] = new Rule(self::ELEM_ITEM, [self::ELEM_RULE_DEF], 'reduceIdentity');
 
         $grammar->rules[] = new Rule(self::ELEM_TOKEN_DEF,
-            [self::TOKEN_TOKEN, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_ROL],
+            [self::ELEM_TOKEN_TYPE, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_ROL],
             'reduceTokenDef');
         $grammar->rules[] = new Rule(self::ELEM_TOKEN_DEF,
-            [self::TOKEN_REGEX, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_ROL],
+            [self::ELEM_TOKEN_TYPE, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_QUOTED],
             'reduceTokenDef');
+        $grammar->rules[] = new Rule(self::ELEM_TOKEN_TYPE, [self::TOKEN_TOKEN], 'reduceIdentity');
+        $grammar->rules[] = new Rule(self::ELEM_TOKEN_TYPE, [self::TOKEN_REGEX], 'reduceIdentity');
+
         $grammar->rules[] = new Rule(self::ELEM_OPERATOR_DEF,
             [self::TOKEN_OPERATOR, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_INTEGER],
             'reduceOperatorDef');$grammar->rules[] = new Rule(self::ELEM_OPERATOR_DEF,
