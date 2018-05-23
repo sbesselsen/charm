@@ -37,17 +37,23 @@ abstract class AbstractPicoGramParser
                 $o += 8;
                 goto st4;
             }
-            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+            if (preg_match('(;[^\\n]*)ADs', $string, $m, 0, $o)) {
                 $sts[] = 5;
                 $os[] = $m;
                 $o += strlen($m[0]);
                 goto st5;
             }
+            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+                $sts[] = 6;
+                $os[] = $m;
+                $o += strlen($m[0]);
+                goto st6;
+            }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect token, regex, escaped, operator or NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect token, regex, escaped, operator, COMMENT (;[^\\n]*) or NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
         st1:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -77,19 +83,6 @@ abstract class AbstractPicoGramParser
         st3:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 12;
-                $os[] = array(' ');
-                $o += 1;
-                goto st12;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st4:
-        if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 13;
                 $os[] = array(' ');
                 $o += 1;
@@ -100,7 +93,7 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st5:
+        st4:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 14;
@@ -113,17 +106,31 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st6:
+        st5:
         if ($o === $l) {
             $r0 = array_pop($os);
-            return $this->reduceGrammar($r0);
+            $os[] = $this->reduceComment($r0);
+            array_pop($sts);
+            goto gt1;
         }
         if ($l > $o) {
             if (substr_compare($string, '
 ', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceComment($r0);
+                array_pop($sts);
+                goto gt1;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        st6:
+        if ($l > $o) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 15;
-                $os[] = array('
-');
+                $os[] = array(' ');
                 $o += 1;
                 goto st15;
             }
@@ -131,8 +138,27 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect \\n or end of string at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st7:
+        if ($o === $l) {
+            $r0 = array_pop($os);
+            return $this->reduceGrammar($r0);
+        }
+        if ($l > $o) {
+            if (substr_compare($string, '
+', $o, 1) === 0) {
+                $sts[] = 16;
+                $os[] = array('
+');
+                $o += 1;
+                goto st16;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect \\n or end of string at line ' . $el . ', column ' . $ec);
+        st8:
         if ($o === $l) {
             $r0 = array_pop($os);
             $os[] = $this->reduceArrayOf($r0);
@@ -146,26 +172,6 @@ abstract class AbstractPicoGramParser
                 $os[] = $this->reduceArrayOf($r0);
                 array_pop($sts);
                 goto gt0;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
-        st8:
-        if ($o === $l) {
-            $r0 = array_pop($os);
-            $os[] = $this->reduceIdentity($r0);
-            array_pop($sts);
-            goto gt1;
-        }
-        if ($l > $o) {
-            if (substr_compare($string, '
-', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceIdentity($r0);
-                array_pop($sts);
-                goto gt1;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
@@ -213,58 +219,78 @@ abstract class AbstractPicoGramParser
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
         st11:
+        if ($o === $l) {
+            $r0 = array_pop($os);
+            $os[] = $this->reduceIdentity($r0);
+            array_pop($sts);
+            goto gt1;
+        }
         if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 16;
-                $os[] = array(' ');
-                $o += 1;
-                goto st16;
+            if (substr_compare($string, '
+', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceIdentity($r0);
+                array_pop($sts);
+                goto gt1;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
         st12:
         if ($l > $o) {
-            if (substr_compare($string, 'token', $o, 5) === 0) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 17;
-                $os[] = array('token');
-                $o += 5;
+                $os[] = array(' ');
+                $o += 1;
                 goto st17;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect token at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st13:
         if ($l > $o) {
-            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+            if (substr_compare($string, 'token', $o, 5) === 0) {
                 $sts[] = 18;
-                $os[] = $m;
-                $o += strlen($m[0]);
+                $os[] = array('token');
+                $o += 5;
                 goto st18;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect token at line ' . $el . ', column ' . $ec);
         st14:
         if ($l > $o) {
-            if (substr_compare($string, '->', $o, 2) === 0) {
+            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
                 $sts[] = 19;
-                $os[] = array('->');
-                $o += 2;
+                $os[] = $m;
+                $o += strlen($m[0]);
                 goto st19;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect -> at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
         st15:
+        if ($l > $o) {
+            if (substr_compare($string, '->', $o, 2) === 0) {
+                $sts[] = 20;
+                $os[] = array('->');
+                $o += 2;
+                goto st20;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect -> at line ' . $el . ', column ' . $ec);
+        st16:
         if ($o === $l) {
             $r1 = array_pop($os);
             $r0 = array_pop($os);
@@ -307,31 +333,37 @@ abstract class AbstractPicoGramParser
                 $o += 8;
                 goto st4;
             }
-            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+            if (preg_match('(;[^\\n]*)ADs', $string, $m, 0, $o)) {
                 $sts[] = 5;
                 $os[] = $m;
                 $o += strlen($m[0]);
                 goto st5;
             }
+            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+                $sts[] = 6;
+                $os[] = $m;
+                $o += strlen($m[0]);
+                goto st6;
+            }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect token, regex, escaped, operator, NAME ([a-zA-Z_][a-zA-Z_0-9]*), end of string or \\n at line ' . $el . ', column ' . $ec);
-        st16:
+        throw new \Exception('Expect token, regex, escaped, operator, COMMENT (;[^\\n]*), NAME ([a-zA-Z_][a-zA-Z_0-9]*), end of string or \\n at line ' . $el . ', column ' . $ec);
+        st17:
         if ($l > $o) {
             if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
-                $sts[] = 21;
+                $sts[] = 22;
                 $os[] = $m;
                 $o += strlen($m[0]);
-                goto st21;
+                goto st22;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
-        st17:
+        st18:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r2 = array_pop($os);
@@ -342,19 +374,6 @@ abstract class AbstractPicoGramParser
                 array_pop($sts);
                 array_pop($sts);
                 goto gt5;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st18:
-        if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 22;
-                $os[] = array(' ');
-                $o += 1;
-                goto st22;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
@@ -375,6 +394,19 @@ abstract class AbstractPicoGramParser
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st20:
+        if ($l > $o) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
+                $sts[] = 24;
+                $os[] = array(' ');
+                $o += 1;
+                goto st24;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        st21:
         if ($o === $l) {
             $r2 = array_pop($os);
             $r1 = array_pop($os);
@@ -402,35 +434,22 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
-        st21:
-        if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 24;
-                $os[] = array(' ');
-                $o += 1;
-                goto st24;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st22:
         if ($l > $o) {
-            if (preg_match('([0-9]+)ADs', $string, $m, 0, $o)) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 25;
-                $os[] = $m;
-                $o += strlen($m[0]);
+                $os[] = array(' ');
+                $o += 1;
                 goto st25;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect INTEGER ([0-9]+) at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st23:
         if ($l > $o) {
-            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+            if (preg_match('([0-9]+)ADs', $string, $m, 0, $o)) {
                 $sts[] = 26;
                 $os[] = $m;
                 $o += strlen($m[0]);
@@ -440,21 +459,34 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect INTEGER ([0-9]+) at line ' . $el . ', column ' . $ec);
         st24:
         if ($l > $o) {
-            if (preg_match('([^\\n]*)ADs', $string, $m, 0, $o)) {
-                $sts[] = 28;
+            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+                $sts[] = 27;
                 $os[] = $m;
                 $o += strlen($m[0]);
-                goto st28;
+                goto st27;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
+        st25:
+        if ($l > $o) {
+            if (preg_match('([^\\n]*)ADs', $string, $m, 0, $o)) {
+                $sts[] = 29;
+                $os[] = $m;
+                $o += strlen($m[0]);
+                goto st29;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect ROL ([^\\n]*) at line ' . $el . ', column ' . $ec);
-        st25:
+        st26:
         if ($o === $l) {
             $r4 = array_pop($os);
             $r3 = array_pop($os);
@@ -486,17 +518,17 @@ abstract class AbstractPicoGramParser
                 goto gt3;
             }
             if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 29;
+                $sts[] = 30;
                 $os[] = array(' ');
                 $o += 1;
-                goto st29;
+                goto st30;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space, end of string or \\n at line ' . $el . ', column ' . $ec);
-        st26:
+        st27:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r0 = array_pop($os);
@@ -509,20 +541,20 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st27:
+        st28:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 30;
+                $sts[] = 31;
                 $os[] = array(' ');
                 $o += 1;
-                goto st30;
+                goto st31;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st28:
+        st29:
         if ($o === $l) {
             $r4 = array_pop($os);
             $r3 = array_pop($os);
@@ -558,70 +590,50 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
-        st29:
+        st30:
         if ($l > $o) {
             if (substr_compare($string, 'left', $o, 4) === 0) {
-                $sts[] = 31;
+                $sts[] = 32;
                 $os[] = array('left');
                 $o += 4;
-                goto st31;
-            }
-            if (substr_compare($string, 'right', $o, 5) === 0) {
-                $sts[] = 32;
-                $os[] = array('right');
-                $o += 5;
                 goto st32;
             }
-            if (substr_compare($string, 'nonassoc', $o, 8) === 0) {
+            if (substr_compare($string, 'right', $o, 5) === 0) {
                 $sts[] = 33;
+                $os[] = array('right');
+                $o += 5;
+                goto st33;
+            }
+            if (substr_compare($string, 'nonassoc', $o, 8) === 0) {
+                $sts[] = 34;
                 $os[] = array('nonassoc');
                 $o += 8;
-                goto st33;
+                goto st34;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect left, right or nonassoc at line ' . $el . ', column ' . $ec);
-        st30:
+        st31:
         if ($l > $o) {
             if (substr_compare($string, '{', $o, 1) === 0) {
-                $sts[] = 35;
+                $sts[] = 36;
                 $os[] = array('{');
                 $o += 1;
-                goto st35;
+                goto st36;
             }
             if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
-                $sts[] = 36;
+                $sts[] = 37;
                 $os[] = $m;
                 $o += strlen($m[0]);
-                goto st36;
+                goto st37;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect { or NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
-        st31:
-        if ($o === $l) {
-            $r0 = array_pop($os);
-            $os[] = $this->reduceIdentity($r0);
-            array_pop($sts);
-            goto gt7;
-        }
-        if ($l > $o) {
-            if (substr_compare($string, '
-', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceIdentity($r0);
-                array_pop($sts);
-                goto gt7;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
         st32:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -663,6 +675,26 @@ abstract class AbstractPicoGramParser
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
         st34:
+        if ($o === $l) {
+            $r0 = array_pop($os);
+            $os[] = $this->reduceIdentity($r0);
+            array_pop($sts);
+            goto gt7;
+        }
+        if ($l > $o) {
+            if (substr_compare($string, '
+', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceIdentity($r0);
+                array_pop($sts);
+                goto gt7;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        st35:
         if ($o === $l) {
             $r6 = array_pop($os);
             $r5 = array_pop($os);
@@ -706,20 +738,20 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
-        st35:
+        st36:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 37;
+                $sts[] = 38;
                 $os[] = array(' ');
                 $o += 1;
-                goto st37;
+                goto st38;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st36:
+        st37:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r2 = array_pop($os);
@@ -736,37 +768,24 @@ abstract class AbstractPicoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st37:
-        if ($l > $o) {
-            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
-                $sts[] = 38;
-                $os[] = $m;
-                $o += strlen($m[0]);
-                goto st38;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
         st38:
         if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
+            if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
                 $sts[] = 39;
-                $os[] = array(' ');
-                $o += 1;
+                $os[] = $m;
+                $o += strlen($m[0]);
                 goto st39;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
         st39:
         if ($l > $o) {
-            if (substr_compare($string, '}', $o, 1) === 0) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 40;
-                $os[] = array('}');
+                $os[] = array(' ');
                 $o += 1;
                 goto st40;
             }
@@ -774,8 +793,21 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect } at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st40:
+        if ($l > $o) {
+            if (substr_compare($string, '}', $o, 1) === 0) {
+                $sts[] = 41;
+                $os[] = array('}');
+                $o += 1;
+                goto st41;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect } at line ' . $el . ', column ' . $ec);
+        st41:
         if ($o === $l) {
             $r10 = array_pop($os);
             $r9 = array_pop($os);
@@ -838,71 +870,72 @@ abstract class AbstractPicoGramParser
         gt0:
         switch ($sts[count($sts) - 1]) {
             case 0:
-                $sts[] = 6;
-                goto st6;
+                $sts[] = 7;
+                goto st7;
         }
         gt1:
         switch ($sts[count($sts) - 1]) {
             case 0:
-                $sts[] = 7;
-                goto st7;
-            case 15:
-                $sts[] = 20;
-                goto st20;
+                $sts[] = 8;
+                goto st8;
+            case 16:
+                $sts[] = 21;
+                goto st21;
         }
         gt2:
         switch ($sts[count($sts) - 1]) {
             case 0:
-                $sts[] = 8;
-                goto st8;
-            case 15:
-                $sts[] = 8;
-                goto st8;
+                $sts[] = 9;
+                goto st9;
+            case 16:
+                $sts[] = 9;
+                goto st9;
         }
         gt3:
         switch ($sts[count($sts) - 1]) {
             case 0:
-                $sts[] = 9;
-                goto st9;
-            case 15:
-                $sts[] = 9;
-                goto st9;
+                $sts[] = 10;
+                goto st10;
+            case 16:
+                $sts[] = 10;
+                goto st10;
         }
         gt4:
         switch ($sts[count($sts) - 1]) {
             case 0:
-                $sts[] = 10;
-                goto st10;
-            case 15:
-                $sts[] = 10;
-                goto st10;
+                $sts[] = 11;
+                goto st11;
+            case 16:
+                $sts[] = 11;
+                goto st11;
         }
         gt5:
         switch ($sts[count($sts) - 1]) {
             case 0:
-                $sts[] = 11;
-                goto st11;
-            case 15:
-                $sts[] = 11;
-                goto st11;
+                $sts[] = 12;
+                goto st12;
+            case 16:
+                $sts[] = 12;
+                goto st12;
         }
         gt6:
         switch ($sts[count($sts) - 1]) {
-            case 23:
-                $sts[] = 27;
-                goto st27;
+            case 24:
+                $sts[] = 28;
+                goto st28;
         }
         gt7:
         switch ($sts[count($sts) - 1]) {
-            case 29:
-                $sts[] = 34;
-                goto st34;
+            case 30:
+                $sts[] = 35;
+                goto st35;
         }
     }
     protected abstract function reduceGrammar($p1);
     protected abstract function reduceItems($p1, $p2, $p3 = null);
     protected abstract function reduceArrayOf($p1);
     protected abstract function reduceIdentity($p1);
+    protected abstract function reduceComment($p1);
     protected abstract function reduceTokenDef($p1, $p2, $p3, $p4, $p5);
     protected abstract function reduceEscapedTokenType($p1, $p2, $p3);
     protected abstract function reduceOperatorDef($p1, $p2, $p3, $p4, $p5, $p6 = null, $p7 = null);

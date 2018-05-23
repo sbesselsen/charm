@@ -13,6 +13,9 @@ final class PicoGramParser extends AbstractPicoGramParser
     {
         $grammar = new Grammar();
         foreach ($items as $item) {
+            if ($item === null) {
+                continue;
+            }
             [$def] = $item;
             if ($def instanceof TokenInfo) {
                 $grammar->tokens[$item[1]] = $def;
@@ -28,6 +31,11 @@ final class PicoGramParser extends AbstractPicoGramParser
     protected function reduceIdentity($p1)
     {
         return $p1;
+    }
+
+    protected function reduceComment($p1)
+    {
+        return null;
     }
 
     protected function reduceArrayOf($p1)

@@ -9,31 +9,49 @@ token NONASSOC nonassoc
 token ARROW ->
 token CURLY_OPEN {
 token CURLY_CLOSE }
+regex COMMENT ;[^\n]*
 escaped token SPACE \s
 escaped token EOL \n
 regex ROL [^\n]*
 regex NAME [a-zA-Z_][a-zA-Z_0-9]*
 
+;
+; General file structure.
+;
 Start -> Items { reduceGrammar }
 Items -> Items EOL Item { reduceItems }
 Items -> Items EOL { reduceItems }
 Items -> Item { reduceArrayOf }
 
+;
+; Types of items.
+;
 Item -> TokenDef { reduceIdentity }
 Item -> OperatorDef { reduceIdentity }
 Item -> RuleDef { reduceIdentity }
+Item -> COMMENT { reduceComment }
 
+;
+; Tokens.
+;
 TokenDef -> TokenType SPACE NAME SPACE ROL { reduceTokenDef }
 TokenType -> TOKEN { reduceIdentity }
 TokenType -> ESCAPED SPACE TOKEN { reduceEscapedTokenType }
 TokenType -> REGEX { reduceIdentity }
 
+;
+; Operators.
+;
 OperatorDef -> OPERATOR SPACE NAME SPACE INTEGER { reduceOperatorDef }
 OperatorDef -> OPERATOR SPACE NAME SPACE INTEGER SPACE AssocDef { reduceOperatorDef }
 AssocDef -> LEFT { reduceIdentity }
 AssocDef -> RIGHT { reduceIdentity }
 AssocDef -> NONASSOC { reduceIdentity }
 
+;
+; Rules.
+;
 RuleDef -> NAME SPACE ARROW SPACE Sequence SPACE CURLY_OPEN SPACE NAME SPACE CURLY_CLOSE { reduceRuleDef }
 Sequence -> Sequence SPACE NAME { reduceSequenceItems }
 Sequence -> NAME { reduceIdentity }
+
