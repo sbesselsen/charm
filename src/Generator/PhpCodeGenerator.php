@@ -41,6 +41,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     const VARIABLE_ERROR_LINES = 'els';
     const VARIABLE_ERROR_LINE = 'el';
     const VARIABLE_ERROR_COLUMN = 'ec';
+    const VARIABLE_REDUCE_PARAM_PREFIX = 'p';
 
     const TOKEN_END = '$';
 
@@ -89,10 +90,38 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             $statements[] = new Namespace_(new Name($namespace));
         }
         $class = new Class_($options->getClassName(), ['flags' => Class_::MODIFIER_ABSTRACT]);
+
+        // Add the parse method.
         $method = new ClassMethod('parse', ['flags' => Class_::MODIFIER_PUBLIC]);
         $method->stmts = $this->generateParserMethod($grammar, $stateTable);
         $method->params[] = new Param(new Variable(self::VARIABLE_STRING), null, 'string');
         $class->stmts[] = $method;
+
+        // Add abstract functions for all the reduce functions.
+        $reduceFunctionMaxArgs = [];
+        $reduceFunctionMinArgs = [];
+        foreach ($grammar->rules as $rule) {
+            if (isset ($reduceFunctionMaxArgs[$rule->reduceFunction])) {
+                $reduceFunctionMaxArgs[$rule->reduceFunction] = max(count($rule->input), $reduceFunctionMaxArgs[$rule->reduceFunction]);
+                $reduceFunctionMinArgs[$rule->reduceFunction] = min(count($rule->input), $reduceFunctionMinArgs[$rule->reduceFunction]);
+            } else {
+                $reduceFunctionMaxArgs[$rule->reduceFunction] = count($rule->input);
+                $reduceFunctionMinArgs[$rule->reduceFunction] = count($rule->input);
+            }
+        }
+        foreach ($reduceFunctionMaxArgs as $reduceFunction => $maxArgs) {
+            $minArgs = $reduceFunctionMinArgs[$reduceFunction];
+            $method = new ClassMethod($reduceFunction, ['flags' => Class_::MODIFIER_PROTECTED | Class_::MODIFIER_ABSTRACT, 'stmts' => null]);
+            for ($i = 0; $i < $minArgs; $i++) {
+                $method->params[] = new Param(new Variable(self::VARIABLE_REDUCE_PARAM_PREFIX . ($i + 1)), null);
+            }
+            $nullExpr = new Expr\ConstFetch(new Name('null'));
+            for ($i = $minArgs; $i < $maxArgs; $i++) {
+                $method->params[] = new Param(new Variable(self::VARIABLE_REDUCE_PARAM_PREFIX . ($i + 1)), $nullExpr);
+            }
+            $class->stmts[] = $method;
+        }
+
         $statements[] = $class;
 
         return $this->prettyPrinter->prettyPrintFile($statements);
