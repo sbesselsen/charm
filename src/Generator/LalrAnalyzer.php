@@ -146,7 +146,19 @@ final class LalrAnalyzer implements AnalyzerInterface
             $expansionItem->position = $item->position + 1;
             $expansionItemSet->items[] = $expansionItem;
         }
-        return $expansions;
+
+        // Order expansions by token order, to make sure higher tokens are tried before lower tokens.
+        $sortedExpansions = [];
+        foreach (array_keys($grammar->tokens) as $token) {
+            if (isset ($expansions[$token])) {
+                $sortedExpansions[$token] = $expansions[$token];
+            }
+        }
+        foreach (array_diff_key($expansions, $sortedExpansions) as $element => $expansion) {
+            $sortedExpansions[$element] = $expansion;
+        }
+
+        return $sortedExpansions;
     }
 
     /**
