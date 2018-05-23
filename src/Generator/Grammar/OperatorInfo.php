@@ -29,9 +29,12 @@ class OperatorInfo
      * @param int $precedence
      * @param int $associativity
      */
-    public function __construct(int $precedence, int $associativity)
+    public function __construct(int $precedence, int $associativity = null)
     {
         $this->precedence = $precedence;
+        if ($associativity === null) {
+            $associativity = self::ASSOC_LEFT;
+        }
         $this->associativity = $associativity;
     }
 }
