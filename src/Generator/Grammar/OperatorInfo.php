@@ -23,4 +23,15 @@ class OperatorInfo
      *   One of InfixOperator::ASSOC_*.
      */
     public $associativity;
+
+    /**
+     * OperatorInfo constructor.
+     * @param int $precedence
+     * @param int $associativity
+     */
+    public function __construct(int $precedence, int $associativity)
+    {
+        $this->precedence = $precedence;
+        $this->associativity = $associativity;
+    }
 }

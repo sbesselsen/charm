@@ -22,4 +22,15 @@ class TokenInfo
      *   The pattern.
      */
     public $pattern;
+
+    /**
+     * TokenInfo constructor.
+     * @param int $type
+     * @param string $pattern
+     */
+    public function __construct(int $type, string $pattern)
+    {
+        $this->type = $type;
+        $this->pattern = $pattern;
+    }
 }

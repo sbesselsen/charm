@@ -27,4 +27,17 @@ class Rule
      *   The reduce function.
      */
     public $reduceFunction;
+
+    /**
+     * Rule constructor.
+     * @param string $output
+     * @param array $input
+     * @param string $reduceFunction
+     */
+    public function __construct(string $output, array $input, string $reduceFunction)
+    {
+        $this->output = $output;
+        $this->input = $input;
+        $this->reduceFunction = $reduceFunction;
+    }
 }
