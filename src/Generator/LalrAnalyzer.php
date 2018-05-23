@@ -335,6 +335,18 @@ final class LalrAnalyzer implements AnalyzerInterface
                 }
             }
         }
+
+        $knownElements = [];
+        foreach ($grammar->rules as $rule) {
+            $knownElements[$rule->output] = $rule->output;
+        }
+        foreach ($grammar->rules as $rule) {
+            foreach ($rule->input as $element) {
+                if (!isset($grammar->tokens[$element]) && !isset($knownElements[$element])) {
+                    throw new \Exception('Unknown element ' . $element . ' referenced in rule ' . $this->dumpRule($rule));
+                }
+            }
+        }
     }
 
     /**
