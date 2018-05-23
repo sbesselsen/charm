@@ -79,7 +79,8 @@ final class PicoGramGrammar
 
         $grammar->rules[] = new Rule(self::ELEM_OPERATOR_DEF,
             [self::TOKEN_OPERATOR, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_INTEGER],
-            'reduceOperatorDef');$grammar->rules[] = new Rule(self::ELEM_OPERATOR_DEF,
+            'reduceOperatorDef');
+        $grammar->rules[] = new Rule(self::ELEM_OPERATOR_DEF,
             [self::TOKEN_OPERATOR, self::TOKEN_SPACE, self::TOKEN_NAME, self::TOKEN_SPACE, self::TOKEN_INTEGER, self::TOKEN_SPACE, self::ELEM_ASSOC_DEF],
             'reduceOperatorDef');
         $grammar->rules[] = new Rule(self::ELEM_ASSOC_DEF, [self::TOKEN_LEFT], 'reduceIdentity');
