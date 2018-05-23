@@ -431,7 +431,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             $tokenInfo = $grammar->tokens[$token];
             switch ($tokenInfo->type) {
                 case TokenInfo::TYPE_STRING:
-                    $tokenDescriptions[] = $tokenInfo->pattern;
+                    $tokenDescriptions[] = str_replace(["\n", "\r", "\t", " "], ['\n', '\r', '\t', 'space'], $tokenInfo->pattern);
                     break;
                 case TokenInfo::TYPE_REGEX:
                     $tokenDescriptions[] = $token . ' (' . $tokenInfo->pattern . ')';
