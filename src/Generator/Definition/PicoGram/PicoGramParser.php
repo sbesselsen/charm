@@ -46,10 +46,8 @@ final class PicoGramParser extends AbstractPicoGramParser
     protected function reduceTokenDef($type, $p2, $name, $p4, $pattern)
     {
         $patternData = $pattern[0];
-        if ($patternData[0] === '"') {
-            $patternData = substr($patternData, 1, -1);
-            $patternData = str_replace(['\n', '\r', '\t'], ["\n", "\r", "\t"], $patternData);
-            $patternData = stripslashes($patternData);
+        if (isset($type[1]) && $type[1] === 'escaped') {
+            $patternData = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $patternData);
         }
         return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $patternData), $name[0]];
     }
@@ -82,5 +80,10 @@ final class PicoGramParser extends AbstractPicoGramParser
     {
         $p1[] = $p3[0];
         return $p1;
+    }
+
+    protected function reduceEscapedTokenType($p1, $p2, $p3)
+    {
+        return ['token', 'escaped'];
     }
 }
