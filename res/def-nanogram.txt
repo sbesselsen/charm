@@ -11,6 +11,7 @@ token CURLY_OPEN {
 token CURLY_CLOSE }
 token PAREN_OPEN (
 token PAREN_CLOSE )
+regex RULE_SPLIT \n\s*\|
 token COMMA ,
 regex COMMENT ;[^\n]*
 escaped token SPACE \s
@@ -32,7 +33,7 @@ Items -> Item { reduceArrayOf }
 ;
 Item -> TokenDef { reduceIdentity }
 Item -> OperatorDef { reduceIdentity }
-Item -> RuleDef { reduceIdentity }
+Item -> RuleSet { reduceIdentity }
 Item -> COMMENT { reduceComment }
 
 ;
@@ -55,8 +56,13 @@ AssocDef -> NONASSOC { reduceIdentity }
 ;
 ; Rules.
 ;
-RuleDef -> NAME SPACE ARROW SPACE Sequence SPACE CURLY_OPEN SPACE ReduceAction SPACE CURLY_CLOSE { reduceRuleDef }
-RuleDef -> NAME SPACE ARROW SPACE Sequence { reduceRuleDef }
+RuleSet -> NAME SPACE ARROW SPACE RuleRhsList { reduceRuleSet }
+RuleRhsList -> RuleRhsList RULE_SPLIT SPACE RuleRhs { reduceRuleRhsList }
+RuleRhsList -> RuleRhs { reduceArrayOf }
+
+RuleRhs -> Sequence SPACE CURLY_OPEN SPACE ReduceAction SPACE CURLY_CLOSE { reduceRuleRhs }
+RuleRhs -> Sequence { reduceRuleRhs }
+
 Sequence -> Sequence SPACE NAME { reduceSequenceItems }
 Sequence -> NAME { reduceIdentity }
 

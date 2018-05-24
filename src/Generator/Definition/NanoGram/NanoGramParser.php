@@ -11,6 +11,8 @@ use Chompy\Generator\Grammar\TokenInfo;
 
 final class NanoGramParser extends AbstractNanoGramParser
 {
+    const INTERMEDIATE_RULESET = 'ruleset';
+
     protected function reduceGrammar($items)
     {
         $grammar = new Grammar();
@@ -23,8 +25,10 @@ final class NanoGramParser extends AbstractNanoGramParser
                 $grammar->tokens[$item[1]] = $def;
             } elseif ($def instanceof OperatorInfo) {
                 $grammar->operators[$item[1]] = $def;
-            } else {
-                $grammar->rules[] = $def;
+            } elseif ($def === self::INTERMEDIATE_RULESET) {
+                foreach ($item[1] as $rule) {
+                    $grammar->rules[] = $rule;
+                }
             }
         }
         return $grammar;
@@ -81,6 +85,7 @@ final class NanoGramParser extends AbstractNanoGramParser
         return [new OperatorInfo((int)$precedence[0], $assocType), $name[0]];
     }
 
+    /*
     protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6 = null, $p7 = null, $p8 = null, $reduceAction = null, $p10 = null, $p11 = null)
     {
         if ($reduceAction === null) {
@@ -88,6 +93,30 @@ final class NanoGramParser extends AbstractNanoGramParser
         }
         return [new Rule($output[0], $sequence, $reduceAction)];
     }
+    */
+    protected function reduceRuleSet($name, $p1, $p2, $p3, $rhsList)
+    {
+        $rules = [];
+        foreach ($rhsList as $rhs) {
+            $rules[] = new Rule($name[0], $rhs[0], $rhs[1]);
+        }
+        return [self::INTERMEDIATE_RULESET, $rules];
+    }
+
+    protected function reduceRuleRhsList($list, $p1, $p2, $rhs)
+    {
+        $list[] = $rhs;
+        return $list;
+    }
+
+    protected function reduceRuleRhs($sequence, $p1 = null, $p2 = null, $p3 = null, $reduceAction = null, $p5 = null, $p6 = null)
+    {
+        if ($reduceAction === null) {
+            $reduceAction = new CopyReduceAction(0);
+        }
+        return [$sequence, $reduceAction];
+    }
+
 
     protected function reduceSequenceItems($p1, $p2, $p3)
     {
