@@ -81,8 +81,11 @@ final class NanoGramParser extends AbstractNanoGramParser
         return [new OperatorInfo((int)$precedence[0], $assocType), $name[0]];
     }
 
-    protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6, $p7, $p8, $reduceAction, $p10, $p11)
+    protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6 = null, $p7 = null, $p8 = null, $reduceAction = null, $p10 = null, $p11 = null)
     {
+        if ($reduceAction === null) {
+            $reduceAction = new CopyReduceAction(0);
+        }
         return [new Rule($output[0], $sequence, $reduceAction)];
     }
 

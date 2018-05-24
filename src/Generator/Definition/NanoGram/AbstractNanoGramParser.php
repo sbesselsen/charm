@@ -529,8 +529,21 @@ abstract class AbstractNanoGramParser
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space, end of string or \\n at line ' . $el . ', column ' . $ec);
         st27:
+        if ($o === $l) {
+            $r0 = array_pop($os);
+            $os[] = $this->reduceIdentity($r0);
+            array_pop($sts);
+            goto gt6;
+        }
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceIdentity($r0);
+                array_pop($sts);
+                goto gt6;
+            }
+            if (substr_compare($string, '
+', $o, 1) === 0) {
                 $r0 = array_pop($os);
                 $os[] = $this->reduceIdentity($r0);
                 array_pop($sts);
@@ -540,9 +553,38 @@ abstract class AbstractNanoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space, end of string or \\n at line ' . $el . ', column ' . $ec);
         st28:
+        if ($o === $l) {
+            $r4 = array_pop($os);
+            $r3 = array_pop($os);
+            $r2 = array_pop($os);
+            $r1 = array_pop($os);
+            $r0 = array_pop($os);
+            $os[] = $this->reduceRuleDef($r0, $r1, $r2, $r3, $r4);
+            array_pop($sts);
+            array_pop($sts);
+            array_pop($sts);
+            array_pop($sts);
+            array_pop($sts);
+            goto gt4;
+        }
         if ($l > $o) {
+            if (substr_compare($string, '
+', $o, 1) === 0) {
+                $r4 = array_pop($os);
+                $r3 = array_pop($os);
+                $r2 = array_pop($os);
+                $r1 = array_pop($os);
+                $r0 = array_pop($os);
+                $os[] = $this->reduceRuleDef($r0, $r1, $r2, $r3, $r4);
+                array_pop($sts);
+                array_pop($sts);
+                array_pop($sts);
+                array_pop($sts);
+                array_pop($sts);
+                goto gt4;
+            }
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $sts[] = 31;
                 $os[] = array(' ');
@@ -553,7 +595,7 @@ abstract class AbstractNanoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space, end of string or \\n at line ' . $el . ', column ' . $ec);
         st29:
         if ($o === $l) {
             $r4 = array_pop($os);
@@ -752,8 +794,29 @@ abstract class AbstractNanoGramParser
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st37:
+        if ($o === $l) {
+            $r2 = array_pop($os);
+            $r1 = array_pop($os);
+            $r0 = array_pop($os);
+            $os[] = $this->reduceSequenceItems($r0, $r1, $r2);
+            array_pop($sts);
+            array_pop($sts);
+            array_pop($sts);
+            goto gt6;
+        }
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
+                $r2 = array_pop($os);
+                $r1 = array_pop($os);
+                $r0 = array_pop($os);
+                $os[] = $this->reduceSequenceItems($r0, $r1, $r2);
+                array_pop($sts);
+                array_pop($sts);
+                array_pop($sts);
+                goto gt6;
+            }
+            if (substr_compare($string, '
+', $o, 1) === 0) {
                 $r2 = array_pop($os);
                 $r1 = array_pop($os);
                 $r0 = array_pop($os);
@@ -767,7 +830,7 @@ abstract class AbstractNanoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect space, end of string or \\n at line ' . $el . ', column ' . $ec);
         st38:
         if ($l > $o) {
             if (preg_match('(\\$([0-9]+))ADs', $string, $m, 0, $o)) {
@@ -1153,7 +1216,7 @@ abstract class AbstractNanoGramParser
     protected abstract function reduceTokenDef($p0, $p1, $p2, $p3, $p4);
     protected abstract function reduceEscapedTokenType($p0, $p1, $p2);
     protected abstract function reduceOperatorDef($p0, $p1, $p2, $p3, $p4, $p5 = null, $p6 = null);
-    protected abstract function reduceRuleDef($p0, $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10);
+    protected abstract function reduceRuleDef($p0, $p1, $p2, $p3, $p4, $p5 = null, $p6 = null, $p7 = null, $p8 = null, $p9 = null, $p10 = null);
     protected abstract function reduceSequenceItems($p0, $p1, $p2);
     protected abstract function reduceCopyReduceAction($p0);
     protected abstract function reduceCallReduceAction($p0, $p1 = null, $p2 = null, $p3 = null);
