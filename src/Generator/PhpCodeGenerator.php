@@ -101,12 +101,16 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         $reduceFunctionMaxArgs = [];
         $reduceFunctionMinArgs = [];
         foreach ($grammar->rules as $rule) {
+            $argsCount = count($rule->input);
+            if ($rule->reduceFunctionArgs !== null) {
+                $argsCount = count($rule->reduceFunctionArgs);
+            }
             if (isset ($reduceFunctionMaxArgs[$rule->reduceFunction])) {
-                $reduceFunctionMaxArgs[$rule->reduceFunction] = max(count($rule->input), $reduceFunctionMaxArgs[$rule->reduceFunction]);
-                $reduceFunctionMinArgs[$rule->reduceFunction] = min(count($rule->input), $reduceFunctionMinArgs[$rule->reduceFunction]);
+                $reduceFunctionMaxArgs[$rule->reduceFunction] = max($argsCount, $reduceFunctionMaxArgs[$rule->reduceFunction]);
+                $reduceFunctionMinArgs[$rule->reduceFunction] = min($argsCount, $reduceFunctionMinArgs[$rule->reduceFunction]);
             } else {
-                $reduceFunctionMaxArgs[$rule->reduceFunction] = count($rule->input);
-                $reduceFunctionMinArgs[$rule->reduceFunction] = count($rule->input);
+                $reduceFunctionMaxArgs[$rule->reduceFunction] = $argsCount;
+                $reduceFunctionMinArgs[$rule->reduceFunction] = $argsCount;
             }
         }
         foreach ($reduceFunctionMaxArgs as $reduceFunction => $maxArgs) {
@@ -301,20 +305,24 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
         $rule = $grammar->rules[$reduceRuleIndex];
 
+        foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
+            $output[] = new Stmt\Expression(
+                new Assign(
+                    new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex),
+                    new FuncCall(new Name('array_pop'), [
+                        new Arg(new Variable(self::VARIABLE_OUTPUT_STACK))
+                    ])
+                )
+            );
+        }
+
         if ($rule->reduceFunction) {
-            foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
-                $output[] = new Stmt\Expression(
-                    new Assign(
-                        new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex),
-                        new FuncCall(new Name('array_pop'), [
-                            new Arg(new Variable(self::VARIABLE_OUTPUT_STACK))
-                        ])
-                    )
-                );
-            }
+            $reduceFunctionArgs = $rule->reduceFunctionArgs === null
+                ? array_keys($rule->input)
+                : $rule->reduceFunctionArgs;
 
             $args = [];
-            foreach (array_keys($rule->input) as $reduceVarIndex) {
+            foreach ($reduceFunctionArgs as $reduceVarIndex) {
                 $args[] = new Arg(new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $reduceVarIndex));
             }
             $reduceData = new Expr\MethodCall(
@@ -323,14 +331,6 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                 $args
             );
         } else {
-            foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
-                $output[] = new Stmt\Expression(
-                    new FuncCall(new Name('array_pop'), [
-                        new Arg(new Variable(self::VARIABLE_OUTPUT_STACK))
-                    ])
-                );
-            }
-
             $reduceData = new Expr\ConstFetch(new Name('null'));
         }
 
