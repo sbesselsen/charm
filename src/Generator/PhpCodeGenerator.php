@@ -228,27 +228,29 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             ));
         }
 
-        foreach ($state->reduces as $token => $reduceRuleIndex) {
-            if ($token === '$') {
-                // Already handled above.
-                continue;
-            } else {
-                [$test] = $this->generateTokenTest($grammar->tokens[$token]);
-            }
-            $if = new Stmt\If_($test);
-            $if->stmts = $this->generateReduceCode($grammar, $reduceRuleIndex, $gotoLabelMap);
-            $tokenCheckStmts[] = $if;
-        }
+        foreach (array_keys($grammar->tokens) as $token) {
+            if (isset ($state->reduces[$token])) {
+                $reduceRuleIndex = $state->reduces[$token];
+                if ($token === '$') {
+                    // Already handled above.
+                    continue;
+                } else {
+                    [$test] = $this->generateTokenTest($grammar->tokens[$token]);
+                }
+                $if = new Stmt\If_($test);
+                $if->stmts = $this->generateReduceCode($grammar, $reduceRuleIndex, $gotoLabelMap);
+                $tokenCheckStmts[] = $if;
+            } elseif (isset ($state->shifts[$token])) {
+                $shiftStateIndex = $state->shifts[$token];
+                if (!isset ($grammar->tokens[$token])) {
+                    throw new \InvalidArgumentException('Invalid token: ' . $token);
+                }
 
-        foreach ($state->shifts as $token => $shiftStateIndex) {
-            if (!isset ($grammar->tokens[$token])) {
-                throw new \InvalidArgumentException('Invalid token: ' . $token);
+                [$test, $matchExpr, $shiftLengthExpr] = $this->generateTokenTest($grammar->tokens[$token]);
+                $if = new Stmt\If_($test);
+                $if->stmts = $this->generateShiftCode($shiftStateIndex, $matchExpr, $shiftLengthExpr);
+                $tokenCheckStmts[] = $if;
             }
-
-            [$test, $matchExpr, $shiftLengthExpr] = $this->generateTokenTest($grammar->tokens[$token]);
-            $if = new Stmt\If_($test);
-            $if->stmts = $this->generateShiftCode($shiftStateIndex, $matchExpr, $shiftLengthExpr);
-            $tokenCheckStmts[] = $if;
         }
 
         if ($tokenCheckIf !== null) {
