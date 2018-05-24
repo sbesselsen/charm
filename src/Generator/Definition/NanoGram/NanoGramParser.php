@@ -4,6 +4,8 @@ namespace Chompy\Generator\Definition\NanoGram;
 
 use Chompy\Generator\Grammar\Grammar;
 use Chompy\Generator\Grammar\OperatorInfo;
+use Chompy\Generator\Grammar\Reduce\CallReduceAction;
+use Chompy\Generator\Grammar\Reduce\CopyReduceAction;
 use Chompy\Generator\Grammar\Rule;
 use Chompy\Generator\Grammar\TokenInfo;
 
@@ -79,11 +81,9 @@ final class NanoGramParser extends AbstractNanoGramParser
         return [new OperatorInfo((int)$precedence[0], $assocType), $name[0]];
     }
 
-    protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6, $p7, $p8, $reduceExpression, $p10, $p11)
+    protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6, $p7, $p8, $reduceAction, $p10, $p11)
     {
-        [$reduceFunction, $reduceArgs] = $reduceExpression;
-
-        return [new Rule($output[0], $sequence, $reduceFunction, $reduceArgs)];
+        return [new Rule($output[0], $sequence, $reduceAction)];
     }
 
     protected function reduceSequenceItems($p1, $p2, $p3)
@@ -97,9 +97,14 @@ final class NanoGramParser extends AbstractNanoGramParser
         return ['token', 'escaped'];
     }
 
-    protected function reduceFunctionReduceExpression($name, $p2 = null, $args = null, $p4 = null)
+    protected function reduceCallReduceExpression($name, $p2 = null, $args = null, $p4 = null)
     {
-        return [$name[0], $args];
+        return new CallReduceAction($name[0], $args);
+    }
+
+    protected function reduceCopyReduceExpression($p0)
+    {
+        return new CopyReduceAction((int)$p0);
     }
 
     protected function reduceExpressionArgs($args, $p2, $p3, $arg)

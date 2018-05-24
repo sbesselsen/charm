@@ -770,7 +770,96 @@ abstract class AbstractNanoGramParser
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
         st38:
         if ($l > $o) {
+            if (preg_match('(\\$([0-9]+))ADs', $string, $m, 0, $o)) {
+                $sts[] = 39;
+                $os[] = $m;
+                $o += strlen($m[0]);
+                goto st39;
+            }
             if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
+                $sts[] = 40;
+                $os[] = $m;
+                $o += strlen($m[0]);
+                goto st40;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect EXPRESSION_POINTER (\\$([0-9]+)) or NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
+        st39:
+        if ($l > $o) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceExpressionPointer($r0);
+                array_pop($sts);
+                goto gt9;
+            }
+            if (substr_compare($string, ')', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceExpressionPointer($r0);
+                array_pop($sts);
+                goto gt9;
+            }
+            if (substr_compare($string, ',', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceExpressionPointer($r0);
+                array_pop($sts);
+                goto gt9;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect space, ) or , at line ' . $el . ', column ' . $ec);
+        st40:
+        if ($l > $o) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceCallReduceExpression($r0);
+                array_pop($sts);
+                goto gt8;
+            }
+            if (substr_compare($string, '(', $o, 1) === 0) {
+                $sts[] = 43;
+                $os[] = array('(');
+                $o += 1;
+                goto st43;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect ( or space at line ' . $el . ', column ' . $ec);
+        st41:
+        if ($l > $o) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
+                $sts[] = 44;
+                $os[] = array(' ');
+                $o += 1;
+                goto st44;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        st42:
+        if ($l > $o) {
+            if (substr_compare($string, ' ', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceCopyReduceExpression($r0);
+                array_pop($sts);
+                goto gt8;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        st43:
+        if ($l > $o) {
+            if (preg_match('(\\$([0-9]+))ADs', $string, $m, 0, $o)) {
                 $sts[] = 39;
                 $os[] = $m;
                 $o += strlen($m[0]);
@@ -780,116 +869,33 @@ abstract class AbstractNanoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
-        st39:
-        if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceFunctionReduceExpression($r0);
-                array_pop($sts);
-                goto gt8;
-            }
-            if (substr_compare($string, '(', $o, 1) === 0) {
-                $sts[] = 41;
-                $os[] = array('(');
-                $o += 1;
-                goto st41;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect ( or space at line ' . $el . ', column ' . $ec);
-        st40:
-        if ($l > $o) {
-            if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 42;
-                $os[] = array(' ');
-                $o += 1;
-                goto st42;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st41:
-        if ($l > $o) {
-            if (preg_match('(\\$([0-9]+))ADs', $string, $m, 0, $o)) {
-                $sts[] = 43;
-                $os[] = $m;
-                $o += strlen($m[0]);
-                goto st43;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect EXPRESSION_POINTER (\\$([0-9]+)) at line ' . $el . ', column ' . $ec);
-        st42:
+        st44:
         if ($l > $o) {
             if (substr_compare($string, '}', $o, 1) === 0) {
-                $sts[] = 46;
+                $sts[] = 47;
                 $os[] = array('}');
                 $o += 1;
-                goto st46;
+                goto st47;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect } at line ' . $el . ', column ' . $ec);
-        st43:
-        if ($l > $o) {
-            if (substr_compare($string, ')', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionPointer($r0);
-                array_pop($sts);
-                goto gt10;
-            }
-            if (substr_compare($string, ',', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionPointer($r0);
-                array_pop($sts);
-                goto gt10;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect ) or , at line ' . $el . ', column ' . $ec);
-        st44:
-        if ($l > $o) {
-            if (substr_compare($string, ')', $o, 1) === 0) {
-                $sts[] = 47;
-                $os[] = array(')');
-                $o += 1;
-                goto st47;
-            }
-            if (substr_compare($string, ',', $o, 1) === 0) {
-                $sts[] = 48;
-                $os[] = array(',');
-                $o += 1;
-                goto st48;
-            }
-        }
-        $els = explode("\n", substr($string, 0, $o));
-        $el = count($els);
-        $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect ) or , at line ' . $el . ', column ' . $ec);
         st45:
         if ($l > $o) {
             if (substr_compare($string, ')', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceArrayOf($r0);
-                array_pop($sts);
-                goto gt9;
+                $sts[] = 48;
+                $os[] = array(')');
+                $o += 1;
+                goto st48;
             }
             if (substr_compare($string, ',', $o, 1) === 0) {
-                $r0 = array_pop($os);
-                $os[] = $this->reduceArrayOf($r0);
-                array_pop($sts);
-                goto gt9;
+                $sts[] = 49;
+                $os[] = array(',');
+                $o += 1;
+                goto st49;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
@@ -897,6 +903,25 @@ abstract class AbstractNanoGramParser
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect ) or , at line ' . $el . ', column ' . $ec);
         st46:
+        if ($l > $o) {
+            if (substr_compare($string, ')', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceArrayOf($r0);
+                array_pop($sts);
+                goto gt10;
+            }
+            if (substr_compare($string, ',', $o, 1) === 0) {
+                $r0 = array_pop($os);
+                $os[] = $this->reduceArrayOf($r0);
+                array_pop($sts);
+                goto gt10;
+            }
+        }
+        $els = explode("\n", substr($string, 0, $o));
+        $el = count($els);
+        $ec = strlen(array_pop($els)) + 1;
+        throw new \Exception('Expect ) or , at line ' . $el . ', column ' . $ec);
+        st47:
         if ($o === $l) {
             $r10 = array_pop($os);
             $r9 = array_pop($os);
@@ -956,14 +981,14 @@ abstract class AbstractNanoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
-        st47:
+        st48:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r3 = array_pop($os);
                 $r2 = array_pop($os);
                 $r1 = array_pop($os);
                 $r0 = array_pop($os);
-                $os[] = $this->reduceFunctionReduceExpression($r0, $r1, $r2, $r3);
+                $os[] = $this->reduceCallReduceExpression($r0, $r1, $r2, $r3);
                 array_pop($sts);
                 array_pop($sts);
                 array_pop($sts);
@@ -975,33 +1000,33 @@ abstract class AbstractNanoGramParser
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st48:
+        st49:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
-                $sts[] = 49;
+                $sts[] = 50;
                 $os[] = array(' ');
                 $o += 1;
-                goto st49;
+                goto st50;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
-        st49:
+        st50:
         if ($l > $o) {
             if (preg_match('(\\$([0-9]+))ADs', $string, $m, 0, $o)) {
-                $sts[] = 43;
+                $sts[] = 39;
                 $os[] = $m;
                 $o += strlen($m[0]);
-                goto st43;
+                goto st39;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
         throw new \Exception('Expect EXPRESSION_POINTER (\\$([0-9]+)) at line ' . $el . ', column ' . $ec);
-        st50:
+        st51:
         if ($l > $o) {
             if (substr_compare($string, ')', $o, 1) === 0) {
                 $r3 = array_pop($os);
@@ -1013,7 +1038,7 @@ abstract class AbstractNanoGramParser
                 array_pop($sts);
                 array_pop($sts);
                 array_pop($sts);
-                goto gt9;
+                goto gt10;
             }
             if (substr_compare($string, ',', $o, 1) === 0) {
                 $r3 = array_pop($os);
@@ -1025,7 +1050,7 @@ abstract class AbstractNanoGramParser
                 array_pop($sts);
                 array_pop($sts);
                 array_pop($sts);
-                goto gt9;
+                goto gt10;
             }
         }
         $els = explode("\n", substr($string, 0, $o));
@@ -1098,36 +1123,40 @@ abstract class AbstractNanoGramParser
         gt8:
         switch ($sts[count($sts) - 1]) {
             case 38:
-                $sts[] = 40;
-                goto st40;
+                $sts[] = 41;
+                goto st41;
         }
         gt9:
         switch ($sts[count($sts) - 1]) {
-            case 41:
-                $sts[] = 44;
-                goto st44;
+            case 38:
+                $sts[] = 42;
+                goto st42;
+            case 43:
+                $sts[] = 46;
+                goto st46;
+            case 50:
+                $sts[] = 51;
+                goto st51;
         }
         gt10:
         switch ($sts[count($sts) - 1]) {
-            case 41:
+            case 43:
                 $sts[] = 45;
                 goto st45;
-            case 49:
-                $sts[] = 50;
-                goto st50;
         }
     }
-    protected abstract function reduceGrammar($p1);
-    protected abstract function reduceItems($p1, $p2, $p3 = null);
-    protected abstract function reduceArrayOf($p1);
-    protected abstract function reduceIdentity($p1);
-    protected abstract function reduceComment($p1);
-    protected abstract function reduceTokenDef($p1, $p2, $p3, $p4, $p5);
-    protected abstract function reduceEscapedTokenType($p1, $p2, $p3);
-    protected abstract function reduceOperatorDef($p1, $p2, $p3, $p4, $p5, $p6 = null, $p7 = null);
-    protected abstract function reduceRuleDef($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10, $p11);
-    protected abstract function reduceSequenceItems($p1, $p2, $p3);
-    protected abstract function reduceFunctionReduceExpression($p1, $p2 = null, $p3 = null, $p4 = null);
-    protected abstract function reduceExpressionArgs($p1, $p2, $p3, $p4);
-    protected abstract function reduceExpressionPointer($p1);
+    protected abstract function reduceGrammar($p0);
+    protected abstract function reduceItems($p0, $p1, $p2 = null);
+    protected abstract function reduceArrayOf($p0);
+    protected abstract function reduceIdentity($p0);
+    protected abstract function reduceComment($p0);
+    protected abstract function reduceTokenDef($p0, $p1, $p2, $p3, $p4);
+    protected abstract function reduceEscapedTokenType($p0, $p1, $p2);
+    protected abstract function reduceOperatorDef($p0, $p1, $p2, $p3, $p4, $p5 = null, $p6 = null);
+    protected abstract function reduceRuleDef($p0, $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10);
+    protected abstract function reduceSequenceItems($p0, $p1, $p2);
+    protected abstract function reduceCopyReduceExpression($p0);
+    protected abstract function reduceCallReduceExpression($p0, $p1 = null, $p2 = null, $p3 = null);
+    protected abstract function reduceExpressionArgs($p0, $p1, $p2, $p3);
+    protected abstract function reduceExpressionPointer($p0);
 }

@@ -4,6 +4,7 @@ namespace Chompy\Generator\Definition\PicoGram;
 
 use Chompy\Generator\Grammar\Grammar;
 use Chompy\Generator\Grammar\OperatorInfo;
+use Chompy\Generator\Grammar\Reduce\CallReduceAction;
 use Chompy\Generator\Grammar\Rule;
 use Chompy\Generator\Grammar\TokenInfo;
 
@@ -81,7 +82,7 @@ final class PicoGramParser extends AbstractPicoGramParser
 
     protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6, $p7, $p8, $reduceFunction, $p10, $p11)
     {
-        return [new Rule($output[0], $sequence, $reduceFunction[0])];
+        return [new Rule($output[0], $sequence, new CallReduceAction($reduceFunction[0]))];
     }
 
     protected function reduceSequenceItems($p1, $p2, $p3)

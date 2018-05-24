@@ -931,14 +931,14 @@ abstract class AbstractPicoGramParser
                 goto st35;
         }
     }
-    protected abstract function reduceGrammar($p1);
-    protected abstract function reduceItems($p1, $p2, $p3 = null);
-    protected abstract function reduceArrayOf($p1);
-    protected abstract function reduceIdentity($p1);
-    protected abstract function reduceComment($p1);
-    protected abstract function reduceTokenDef($p1, $p2, $p3, $p4, $p5);
-    protected abstract function reduceEscapedTokenType($p1, $p2, $p3);
-    protected abstract function reduceOperatorDef($p1, $p2, $p3, $p4, $p5, $p6 = null, $p7 = null);
-    protected abstract function reduceRuleDef($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10, $p11);
-    protected abstract function reduceSequenceItems($p1, $p2, $p3);
+    protected abstract function reduceGrammar($p0);
+    protected abstract function reduceItems($p0, $p1, $p2 = null);
+    protected abstract function reduceArrayOf($p0);
+    protected abstract function reduceIdentity($p0);
+    protected abstract function reduceComment($p0);
+    protected abstract function reduceTokenDef($p0, $p1, $p2, $p3, $p4);
+    protected abstract function reduceEscapedTokenType($p0, $p1, $p2);
+    protected abstract function reduceOperatorDef($p0, $p1, $p2, $p3, $p4, $p5 = null, $p6 = null);
+    protected abstract function reduceRuleDef($p0, $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10);
+    protected abstract function reduceSequenceItems($p0, $p1, $p2);
 }
