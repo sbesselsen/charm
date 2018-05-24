@@ -5,7 +5,6 @@ namespace Chompy\Generator;
 use Chompy\Generator\Grammar\Grammar;
 use Chompy\Generator\Grammar\Reduce\CallReduceAction;
 use Chompy\Generator\Grammar\Reduce\CopyReduceAction;
-use Chompy\Generator\Grammar\Reduce\DropReduceAction;
 use Chompy\Generator\Grammar\TokenInfo;
 use Chompy\Generator\Options\CodeGeneratorOptions;
 use Chompy\Generator\StateTable\State;
@@ -144,6 +143,9 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
      * @param StateTable $stateTable
      *
      * @return Stmt[]
+     *
+     * @throws \Exception
+     *   If the grammar has inconsistencies.
      */
     private function generateParserMethod(Grammar $grammar, StateTable $stateTable): array
     {
@@ -198,6 +200,9 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
      * @param array $gotoLabelMap
      *
      * @return Stmt[]
+     *
+     * @throws \Exception
+     *   If the grammar has inconsistencies.
      */
     private function generateStateCode(Grammar $grammar, StateTable $stateTable, int $stateIndex, array $gotoLabelMap): array
     {
@@ -209,7 +214,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         if (isset ($state->reduces['$'])) {
             $test = $this->generateEndOfStringTest();
             $if = new Stmt\If_($test);
-            $if->stmts = $this->generateReduceCode($grammar, $stateTable, $state->reduces['$'], $gotoLabelMap);
+            $if->stmts = $this->generateReduceCode($grammar, $state->reduces['$'], $gotoLabelMap);
             $output[] = $if;
         }
 
@@ -231,7 +236,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                 [$test] = $this->generateTokenTest($grammar->tokens[$token]);
             }
             $if = new Stmt\If_($test);
-            $if->stmts = $this->generateReduceCode($grammar, $stateTable, $reduceRuleIndex, $gotoLabelMap);
+            $if->stmts = $this->generateReduceCode($grammar, $reduceRuleIndex, $gotoLabelMap);
             $tokenCheckStmts[] = $if;
         }
 
@@ -242,7 +247,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
             [$test, $matchExpr, $shiftLengthExpr] = $this->generateTokenTest($grammar->tokens[$token]);
             $if = new Stmt\If_($test);
-            $if->stmts = $this->generateShiftCode($grammar, $stateTable, $shiftStateIndex, $matchExpr, $shiftLengthExpr);
+            $if->stmts = $this->generateShiftCode($shiftStateIndex, $matchExpr, $shiftLengthExpr);
             $tokenCheckStmts[] = $if;
         }
 
@@ -259,15 +264,13 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     }
 
     /**
-     * @param Grammar $grammar
-     * @param StateTable $stateTable
      * @param int $toStateIndex
      * @param Expr $matchExpr
      * @param Expr $shiftLengthExpr
      *
      * @return Stmt[]
      */
-    private function generateShiftCode(Grammar $grammar, StateTable $stateTable, int $toStateIndex, Expr $matchExpr, Expr $shiftLengthExpr): array
+    private function generateShiftCode(int $toStateIndex, Expr $matchExpr, Expr $shiftLengthExpr): array
     {
         $output = [];
 
@@ -301,13 +304,15 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
     /**
      * @param Grammar $grammar
-     * @param StateTable $stateTable
      * @param int $reduceRuleIndex
      * @param array $gotoLabelMap
      *
      * @return Stmt[]
+     *
+     * @throws \Exception
+     *   If the grammar has unsupported reduce actions.
      */
-    private function generateReduceCode(Grammar $grammar, StateTable $stateTable, int $reduceRuleIndex, array $gotoLabelMap): array
+    private function generateReduceCode(Grammar $grammar, int $reduceRuleIndex, array $gotoLabelMap): array
     {
         $output = [];
 
@@ -340,8 +345,6 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             );
         } elseif ($rule->reduceAction instanceof CopyReduceAction) {
             $reduceData = new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $rule->reduceAction->elementIndex);
-        } elseif ($rule->reduceAction instanceof DropReduceAction) {
-            $reduceData = new Expr\ConstFetch(new Name('null'));
         } else {
             throw new \Exception('Unsupported reduce action: ' . get_class($rule->reduceAction));
         }
@@ -396,6 +399,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                     new LNumber(strlen($tokenInfo->pattern), ['kind' => LNumber::KIND_DEC])
                 ];
             case TokenInfo::TYPE_REGEX:
+            default:
                 $pattern = '(' . $tokenInfo->pattern . ')ADs';
                 return [
                     new FuncCall(new Name('preg_match'), [

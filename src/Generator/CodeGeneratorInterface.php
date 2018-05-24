@@ -20,6 +20,9 @@ interface CodeGeneratorInterface
      * @param CodeGeneratorOptions|null $options
      *
      * @return string
+     *
+     * @throws \Exception
+     *   If the grammar has inconsistencies.
      */
     public function generate(Grammar $grammar, StateTable $stateTable, CodeGeneratorOptions $options = null): string;
 
@@ -28,6 +31,9 @@ interface CodeGeneratorInterface
      * @param Grammar $grammar
      * @param StateTable $stateTable
      * @param CodeGeneratorOptions|null $options
+     *
+     * @throws \Exception
+     *   If the grammar has inconsistencies.
      */
     public function write(string $path, Grammar $grammar, StateTable $stateTable, CodeGeneratorOptions $options = null): void;
 }
