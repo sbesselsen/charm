@@ -55,16 +55,16 @@ AssocDef -> NONASSOC { reduceIdentity }
 ;
 ; Rules.
 ;
-RuleDef -> NAME SPACE ARROW SPACE Sequence SPACE CURLY_OPEN SPACE ReduceExpression SPACE CURLY_CLOSE { reduceRuleDef }
+RuleDef -> NAME SPACE ARROW SPACE Sequence SPACE CURLY_OPEN SPACE ReduceAction SPACE CURLY_CLOSE { reduceRuleDef }
 Sequence -> Sequence SPACE NAME { reduceSequenceItems }
 Sequence -> NAME { reduceIdentity }
 
-ReduceExpression -> ExpressionPointer { reduceCopyReduceExpression }
+ReduceAction -> ExpressionPointer { reduceCopyReduceAction }
 
-ReduceExpression -> NAME { reduceCallReduceExpression }
-ReduceExpression -> NAME PAREN_OPEN ReduceExpressionArgs PAREN_CLOSE { reduceCallReduceExpression }
+ReduceAction -> NAME { reduceCallReduceAction }
+ReduceAction -> NAME PAREN_OPEN ReduceActionArgs PAREN_CLOSE { reduceCallReduceAction }
 
-ReduceExpressionArgs -> ExpressionPointer { reduceArrayOf }
-ReduceExpressionArgs -> ReduceExpressionArgs COMMA SPACE ExpressionPointer { reduceExpressionArgs }
+ReduceActionArgs -> ExpressionPointer { reduceArrayOf }
+ReduceActionArgs -> ReduceActionArgs COMMA SPACE ExpressionPointer { reduceReduceActionArgs }
 
-ExpressionPointer -> EXPRESSION_POINTER { reduceExpressionPointer }
+ExpressionPointer -> EXPRESSION_POINTER { reduceReduceActionPointer }

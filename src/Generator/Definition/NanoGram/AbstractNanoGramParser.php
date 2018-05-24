@@ -791,19 +791,19 @@ abstract class AbstractNanoGramParser
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionPointer($r0);
+                $os[] = $this->reduceReduceActionPointer($r0);
                 array_pop($sts);
                 goto gt9;
             }
             if (substr_compare($string, ')', $o, 1) === 0) {
                 $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionPointer($r0);
+                $os[] = $this->reduceReduceActionPointer($r0);
                 array_pop($sts);
                 goto gt9;
             }
             if (substr_compare($string, ',', $o, 1) === 0) {
                 $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionPointer($r0);
+                $os[] = $this->reduceReduceActionPointer($r0);
                 array_pop($sts);
                 goto gt9;
             }
@@ -816,7 +816,7 @@ abstract class AbstractNanoGramParser
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r0 = array_pop($os);
-                $os[] = $this->reduceCallReduceExpression($r0);
+                $os[] = $this->reduceCallReduceAction($r0);
                 array_pop($sts);
                 goto gt8;
             }
@@ -848,7 +848,7 @@ abstract class AbstractNanoGramParser
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
                 $r0 = array_pop($os);
-                $os[] = $this->reduceCopyReduceExpression($r0);
+                $os[] = $this->reduceCopyReduceAction($r0);
                 array_pop($sts);
                 goto gt8;
             }
@@ -988,7 +988,7 @@ abstract class AbstractNanoGramParser
                 $r2 = array_pop($os);
                 $r1 = array_pop($os);
                 $r0 = array_pop($os);
-                $os[] = $this->reduceCallReduceExpression($r0, $r1, $r2, $r3);
+                $os[] = $this->reduceCallReduceAction($r0, $r1, $r2, $r3);
                 array_pop($sts);
                 array_pop($sts);
                 array_pop($sts);
@@ -1033,7 +1033,7 @@ abstract class AbstractNanoGramParser
                 $r2 = array_pop($os);
                 $r1 = array_pop($os);
                 $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionArgs($r0, $r1, $r2, $r3);
+                $os[] = $this->reduceReduceActionArgs($r0, $r1, $r2, $r3);
                 array_pop($sts);
                 array_pop($sts);
                 array_pop($sts);
@@ -1045,7 +1045,7 @@ abstract class AbstractNanoGramParser
                 $r2 = array_pop($os);
                 $r1 = array_pop($os);
                 $r0 = array_pop($os);
-                $os[] = $this->reduceExpressionArgs($r0, $r1, $r2, $r3);
+                $os[] = $this->reduceReduceActionArgs($r0, $r1, $r2, $r3);
                 array_pop($sts);
                 array_pop($sts);
                 array_pop($sts);
@@ -1155,8 +1155,8 @@ abstract class AbstractNanoGramParser
     protected abstract function reduceOperatorDef($p0, $p1, $p2, $p3, $p4, $p5 = null, $p6 = null);
     protected abstract function reduceRuleDef($p0, $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10);
     protected abstract function reduceSequenceItems($p0, $p1, $p2);
-    protected abstract function reduceCopyReduceExpression($p0);
-    protected abstract function reduceCallReduceExpression($p0, $p1 = null, $p2 = null, $p3 = null);
-    protected abstract function reduceExpressionArgs($p0, $p1, $p2, $p3);
-    protected abstract function reduceExpressionPointer($p0);
+    protected abstract function reduceCopyReduceAction($p0);
+    protected abstract function reduceCallReduceAction($p0, $p1 = null, $p2 = null, $p3 = null);
+    protected abstract function reduceReduceActionArgs($p0, $p1, $p2, $p3);
+    protected abstract function reduceReduceActionPointer($p0);
 }

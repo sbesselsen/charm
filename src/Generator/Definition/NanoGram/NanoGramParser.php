@@ -97,23 +97,23 @@ final class NanoGramParser extends AbstractNanoGramParser
         return ['token', 'escaped'];
     }
 
-    protected function reduceCallReduceExpression($name, $p2 = null, $args = null, $p4 = null)
+    protected function reduceCallReduceAction($name, $p2 = null, $args = null, $p4 = null)
     {
         return new CallReduceAction($name[0], $args);
     }
 
-    protected function reduceCopyReduceExpression($p0)
+    protected function reduceCopyReduceAction($p0)
     {
         return new CopyReduceAction((int)$p0);
     }
 
-    protected function reduceExpressionArgs($args, $p2, $p3, $arg)
+    protected function reduceReduceActionArgs($args, $p2, $p3, $arg)
     {
         $args[] = $arg;
         return $args;
     }
 
-    protected function reduceExpressionPointer($p1)
+    protected function reduceReduceActionPointer($p1)
     {
         return $p1[1];
     }
