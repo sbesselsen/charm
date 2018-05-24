@@ -117,11 +117,11 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             $minArgs = $reduceFunctionMinArgs[$reduceFunction];
             $method = new ClassMethod($reduceFunction, ['flags' => Class_::MODIFIER_PROTECTED | Class_::MODIFIER_ABSTRACT, 'stmts' => null]);
             for ($i = 0; $i < $minArgs; $i++) {
-                $method->params[] = new Param(new Variable(self::VARIABLE_REDUCE_PARAM_PREFIX . ($i + 1)), null);
+                $method->params[] = new Param(new Variable(self::VARIABLE_REDUCE_PARAM_PREFIX . $i), null);
             }
             $nullExpr = new Expr\ConstFetch(new Name('null'));
             for ($i = $minArgs; $i < $maxArgs; $i++) {
-                $method->params[] = new Param(new Variable(self::VARIABLE_REDUCE_PARAM_PREFIX . ($i + 1)), $nullExpr);
+                $method->params[] = new Param(new Variable(self::VARIABLE_REDUCE_PARAM_PREFIX . $i), $nullExpr);
             }
             $class->stmts[] = $method;
         }
