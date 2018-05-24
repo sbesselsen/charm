@@ -2,6 +2,8 @@
 
 namespace Chompy\Generator\Grammar;
 
+use Chompy\Generator\Grammar\Reduce\ReduceAction;
+
 class Rule
 {
     /**
@@ -21,33 +23,23 @@ class Rule
     public $output;
 
     /**
-     * The reduce function.
+     * The reduce action.
      *
-     * @var string
-     *   The reduce function.
+     * @var ReduceAction
+     *   The reduce action.
      */
-    public $reduceFunction;
-
-    /**
-     * The way the input should be passed to the reduce function, if different from the normal order.
-     *
-     * @var null|array
-     *   The mapping.
-     */
-    public $reduceFunctionArgs = null;
+    public $reduceAction;
 
     /**
      * Rule constructor.
      * @param string $output
      * @param array $input
-     * @param string $reduceFunction
-     * @param array|null $reduceFunctionArgs
+     * @param ReduceAction $reduceAction
      */
-    public function __construct(string $output, array $input, string $reduceFunction, array $reduceFunctionArgs = null)
+    public function __construct(string $output, array $input, ReduceAction $reduceAction)
     {
         $this->output = $output;
         $this->input = $input;
-        $this->reduceFunction = $reduceFunction;
-        $this->reduceFunctionArgs = $reduceFunctionArgs;
+        $this->reduceAction = $reduceAction;
     }
 }

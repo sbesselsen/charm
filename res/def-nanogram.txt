@@ -59,8 +59,10 @@ RuleDef -> NAME SPACE ARROW SPACE Sequence SPACE CURLY_OPEN SPACE ReduceExpressi
 Sequence -> Sequence SPACE NAME { reduceSequenceItems }
 Sequence -> NAME { reduceIdentity }
 
-ReduceExpression -> NAME { reduceFunctionReduceExpression }
-ReduceExpression -> NAME PAREN_OPEN ReduceExpressionArgs PAREN_CLOSE { reduceFunctionReduceExpression }
+ReduceExpression -> ExpressionPointer { reduceCopyReduceExpression }
+
+ReduceExpression -> NAME { reduceCallReduceExpression }
+ReduceExpression -> NAME PAREN_OPEN ReduceExpressionArgs PAREN_CLOSE { reduceCallReduceExpression }
 
 ReduceExpressionArgs -> ExpressionPointer { reduceArrayOf }
 ReduceExpressionArgs -> ReduceExpressionArgs COMMA SPACE ExpressionPointer { reduceExpressionArgs }

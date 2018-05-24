@@ -3,6 +3,9 @@
 namespace Chompy\Generator;
 
 use Chompy\Generator\Grammar\Grammar;
+use Chompy\Generator\Grammar\Reduce\CallReduceAction;
+use Chompy\Generator\Grammar\Reduce\CopyReduceAction;
+use Chompy\Generator\Grammar\Reduce\DropReduceAction;
 use Chompy\Generator\Grammar\TokenInfo;
 use Chompy\Generator\Options\CodeGeneratorOptions;
 use Chompy\Generator\StateTable\State;
@@ -101,16 +104,21 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         $reduceFunctionMaxArgs = [];
         $reduceFunctionMinArgs = [];
         foreach ($grammar->rules as $rule) {
-            $argsCount = count($rule->input);
-            if ($rule->reduceFunctionArgs !== null) {
-                $argsCount = count($rule->reduceFunctionArgs);
+            if (!($rule->reduceAction instanceof CallReduceAction)) {
+                continue;
             }
-            if (isset ($reduceFunctionMaxArgs[$rule->reduceFunction])) {
-                $reduceFunctionMaxArgs[$rule->reduceFunction] = max($argsCount, $reduceFunctionMaxArgs[$rule->reduceFunction]);
-                $reduceFunctionMinArgs[$rule->reduceFunction] = min($argsCount, $reduceFunctionMinArgs[$rule->reduceFunction]);
+            $reduceFunction = $rule->reduceAction->methodName;
+            $reduceFunctionArgs = $rule->reduceAction->argsMapping;
+            $argsCount = count($rule->input);
+            if ($reduceFunctionArgs !== null) {
+                $argsCount = count($reduceFunctionArgs);
+            }
+            if (isset ($reduceFunctionMaxArgs[$reduceFunction])) {
+                $reduceFunctionMaxArgs[$reduceFunction] = max($argsCount, $reduceFunctionMaxArgs[$reduceFunction]);
+                $reduceFunctionMinArgs[$reduceFunction] = min($argsCount, $reduceFunctionMinArgs[$reduceFunction]);
             } else {
-                $reduceFunctionMaxArgs[$rule->reduceFunction] = $argsCount;
-                $reduceFunctionMinArgs[$rule->reduceFunction] = $argsCount;
+                $reduceFunctionMaxArgs[$reduceFunction] = $argsCount;
+                $reduceFunctionMinArgs[$reduceFunction] = $argsCount;
             }
         }
         foreach ($reduceFunctionMaxArgs as $reduceFunction => $maxArgs) {
@@ -316,10 +324,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             );
         }
 
-        if ($rule->reduceFunction) {
-            $reduceFunctionArgs = $rule->reduceFunctionArgs === null
+        if ($rule->reduceAction instanceof CallReduceAction) {
+            $reduceFunctionArgs = $rule->reduceAction->argsMapping === null
                 ? array_keys($rule->input)
-                : $rule->reduceFunctionArgs;
+                : $rule->reduceAction->argsMapping;
 
             $args = [];
             foreach ($reduceFunctionArgs as $reduceVarIndex) {
@@ -327,11 +335,15 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             }
             $reduceData = new Expr\MethodCall(
                 new Variable(new Name('this')),
-                $rule->reduceFunction,
+                $rule->reduceAction->methodName,
                 $args
             );
-        } else {
+        } elseif ($rule->reduceAction instanceof CopyReduceAction) {
+            $reduceData = new Variable(self::VARIABLE_REDUCE_INPUT_PREFIX . $rule->reduceAction->elementIndex);
+        } elseif ($rule->reduceAction instanceof DropReduceAction) {
             $reduceData = new Expr\ConstFetch(new Name('null'));
+        } else {
+            throw new \Exception('Unsupported reduce action: ' . get_class($rule->reduceAction));
         }
 
         if ($reduceRuleIndex === 0) {
