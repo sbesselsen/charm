@@ -211,16 +211,16 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
         $state = $stateTable->states[$stateIndex];
 
-        if (isset ($state->reduces['$'])) {
+        if (isset ($state->reduces[self::TOKEN_END])) {
             $test = $this->generateEndOfStringTest();
             $if = new Stmt\If_($test);
-            $if->stmts = $this->generateReduceCode($grammar, $state->reduces['$'], $gotoLabelMap);
+            $if->stmts = $this->generateReduceCode($grammar, $state->reduces[self::TOKEN_END], $gotoLabelMap);
             $output[] = $if;
         }
 
         $tokenCheckStmts = [];
         $tokenCheckIf = null;
-        if ($state->shifts || array_diff_key($state->reduces, ['$' => null])) {
+        if ($state->shifts || array_diff_key($state->reduces, [self::TOKEN_END => null])) {
             // If we are going to check for more tokens, first check if we are at the end.
             $tokenCheckIf = new Stmt\If_(new Expr\BinaryOp\Greater(
                 new Variable(self::VARIABLE_LENGTH),
@@ -231,12 +231,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         foreach (array_keys($grammar->tokens) as $token) {
             if (isset ($state->reduces[$token])) {
                 $reduceRuleIndex = $state->reduces[$token];
-                if ($token === '$') {
-                    // Already handled above.
-                    continue;
-                } else {
-                    [$test] = $this->generateTokenTest($grammar->tokens[$token]);
-                }
+                [$test] = $this->generateTokenTest($grammar->tokens[$token]);
                 $if = new Stmt\If_($test);
                 $if->stmts = $this->generateReduceCode($grammar, $reduceRuleIndex, $gotoLabelMap);
                 $tokenCheckStmts[] = $if;
@@ -442,7 +437,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         $tokens = array_unique(array_merge(array_keys($state->shifts), array_keys($state->reduces)));
         $tokenDescriptions = [];
         foreach ($tokens as $token) {
-            if ($token === '$') {
+            if ($token === self::TOKEN_END) {
                 $tokenDescriptions[] = 'end of string';
                 continue;
             }
