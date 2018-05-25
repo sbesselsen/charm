@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\Analysis;
+namespace Charm\Generator\Analysis;
 
 class Item
 {

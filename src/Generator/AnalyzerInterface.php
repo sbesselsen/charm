@@ -1,9 +1,9 @@
 <?php
 
-namespace Chompy\Generator;
+namespace Charm\Generator;
 
-use Chompy\Generator\Grammar\Grammar;
-use Chompy\Generator\StateTable\StateTable;
+use Charm\Generator\Grammar\Grammar;
+use Charm\Generator\StateTable\StateTable;
 
 interface AnalyzerInterface
 {

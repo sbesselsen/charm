@@ -4,14 +4,14 @@ $dir = __DIR__ . '/..';
 
 require_once $dir . '/vendor/autoload.php';
 
-$parser = new \Chompy\Generator\Definition\PicoGram\PicoGramParser();
+$parser = new \Charm\Generator\Definition\PicoGram\PicoGramParser();
 $grammar = $parser->parse(file_get_contents($dir . '/res/def-nanogram.txt'));
 
-$generator = \Chompy\Generator\ParserGenerator::defaultGenerator();
+$generator = \Charm\Generator\ParserGenerator::defaultGenerator();
 
 $options = $generator->createCodeGeneratorOptions()
     ->setClassName('AbstractNanoGramParser')
-    ->setNamespace('Chompy\\Generator\\Definition\\NanoGram');
+    ->setNamespace('Charm\\Generator\\Definition\\NanoGram');
 
 $generator->write($dir . '/src/Generator/Definition/NanoGram/AbstractNanoGramParser.php', $grammar, $options);
 

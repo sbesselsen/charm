@@ -1,5 +1,5 @@
 {
-    "name": "sbesselsen/chompy",
+    "name": "sbesselsen/charm",
     "description": "A fast and simple PHP 7 parser framework",
     "type": "library",
     "license": "MIT",
@@ -14,7 +14,7 @@
     },
     "autoload": {
          "psr-4": {
-             "Chompy\\": "src/"
+             "Charm\\": "src/"
          }
     },
     "require-dev": {

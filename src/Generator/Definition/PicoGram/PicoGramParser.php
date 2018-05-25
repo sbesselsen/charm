@@ -1,12 +1,12 @@
 <?php
 
-namespace Chompy\Generator\Definition\PicoGram;
+namespace Charm\Generator\Definition\PicoGram;
 
-use Chompy\Generator\Grammar\Grammar;
-use Chompy\Generator\Grammar\OperatorInfo;
-use Chompy\Generator\Grammar\Reduce\CallReduceAction;
-use Chompy\Generator\Grammar\Rule;
-use Chompy\Generator\Grammar\TokenInfo;
+use Charm\Generator\Grammar\Grammar;
+use Charm\Generator\Grammar\OperatorInfo;
+use Charm\Generator\Grammar\Reduce\CallReduceAction;
+use Charm\Generator\Grammar\Rule;
+use Charm\Generator\Grammar\TokenInfo;
 
 final class PicoGramParser extends AbstractPicoGramParser
 {

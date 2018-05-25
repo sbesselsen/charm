@@ -1,14 +1,14 @@
 <?php
 
-namespace Chompy\Generator;
+namespace Charm\Generator;
 
-use Chompy\Generator\Grammar\Grammar;
-use Chompy\Generator\Grammar\Reduce\CallReduceAction;
-use Chompy\Generator\Grammar\Reduce\CopyReduceAction;
-use Chompy\Generator\Grammar\TokenInfo;
-use Chompy\Generator\Options\CodeGeneratorOptions;
-use Chompy\Generator\StateTable\State;
-use Chompy\Generator\StateTable\StateTable;
+use Charm\Generator\Grammar\Grammar;
+use Charm\Generator\Grammar\Reduce\CallReduceAction;
+use Charm\Generator\Grammar\Reduce\CopyReduceAction;
+use Charm\Generator\Grammar\TokenInfo;
+use Charm\Generator\Options\CodeGeneratorOptions;
+use Charm\Generator\StateTable\State;
+use Charm\Generator\StateTable\StateTable;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;

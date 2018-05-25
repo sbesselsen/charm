@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\Definition\PicoGram;
+namespace Charm\Generator\Definition\PicoGram;
 
 abstract class AbstractPicoGramParser
 {

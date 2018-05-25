@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\StateTable;
+namespace Charm\Generator\StateTable;
 
 class State
 {

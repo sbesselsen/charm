@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\Grammar;
+namespace Charm\Generator\Grammar;
 
 class OperatorInfo
 {

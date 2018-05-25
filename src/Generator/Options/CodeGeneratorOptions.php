@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\Options;
+namespace Charm\Generator\Options;
 
 class CodeGeneratorOptions
 {

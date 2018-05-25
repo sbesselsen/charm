@@ -1,9 +1,9 @@
 <?php
 
-namespace Chompy\Generator;
+namespace Charm\Generator;
 
-use Chompy\Generator\Grammar\Grammar;
-use Chompy\Generator\Options\CodeGeneratorOptions;
+use Charm\Generator\Grammar\Grammar;
+use Charm\Generator\Options\CodeGeneratorOptions;
 
 interface ParserGeneratorInterface
 {

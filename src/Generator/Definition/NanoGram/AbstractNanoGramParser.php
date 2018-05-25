@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\Definition\NanoGram;
+namespace Charm\Generator\Definition\NanoGram;
 
 abstract class AbstractNanoGramParser
 {

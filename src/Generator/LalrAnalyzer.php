@@ -1,14 +1,14 @@
 <?php
 
-namespace Chompy\Generator;
+namespace Charm\Generator;
 
-use Chompy\Generator\Analysis\ItemSet;
-use Chompy\Generator\Analysis\Item;
-use Chompy\Generator\Grammar\Grammar;
-use Chompy\Generator\Grammar\OperatorInfo;
-use Chompy\Generator\Grammar\Rule;
-use Chompy\Generator\StateTable\State;
-use Chompy\Generator\StateTable\StateTable;
+use Charm\Generator\Analysis\ItemSet;
+use Charm\Generator\Analysis\Item;
+use Charm\Generator\Grammar\Grammar;
+use Charm\Generator\Grammar\OperatorInfo;
+use Charm\Generator\Grammar\Rule;
+use Charm\Generator\StateTable\State;
+use Charm\Generator\StateTable\StateTable;
 
 final class LalrAnalyzer implements AnalyzerInterface
 {

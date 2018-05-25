@@ -4,13 +4,13 @@ $dir = __DIR__ . '/..';
 
 require_once $dir . '/vendor/autoload.php';
 
-$parser = new \Chompy\Generator\Definition\PicoGram\PicoGramParser();
+$parser = new \Charm\Generator\Definition\PicoGram\PicoGramParser();
 $grammar = $parser->parse(file_get_contents($dir . '/res/def-picogram.txt'));
 
-$generator = \Chompy\Generator\ParserGenerator::defaultGenerator();
+$generator = \Charm\Generator\ParserGenerator::defaultGenerator();
 
 $options = $generator->createCodeGeneratorOptions()
     ->setClassName('AbstractPicoGramParser')
-    ->setNamespace('Chompy\\Generator\\Definition\\PicoGram');
+    ->setNamespace('Charm\\Generator\\Definition\\PicoGram');
 
 $generator->write($dir . '/src/Generator/Definition/PicoGram/AbstractPicoGramParser.php', $grammar, $options);

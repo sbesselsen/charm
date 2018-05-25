@@ -1,8 +1,8 @@
 <?php
 
-namespace Chompy\Generator\Grammar;
+namespace Charm\Generator\Grammar;
 
-use Chompy\Generator\Grammar\Reduce\ReduceAction;
+use Charm\Generator\Grammar\Reduce\ReduceAction;
 
 class Rule
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Chompy\Generator\Grammar\Reduce;
+namespace Charm\Generator\Grammar\Reduce;
 
 final class CopyReduceAction extends ReduceAction
 {
