@@ -13,6 +13,67 @@ final class NanoGramParser extends AbstractNanoGramParser
 {
     const INTERMEDIATE_RULESET = 'ruleset';
 
+    private $currentPath = NULL;
+
+    /**
+     * Parse a file.
+     *
+     * @param string $path
+     *
+     * @return Grammar
+     * @throws \Exception
+     */
+    public function parseFile(string $path): Grammar
+    {
+        if (!file_exists($path)) {
+            throw new \Exception('File not found: ' . $path);
+        }
+        return $this->parseWithCurrentPath(file_get_contents($path), $path);
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return Grammar
+     * @throws \Exception
+     */
+    public function parse(string $string): Grammar
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection, PhpVoidFunctionResultUsedInspection */
+        return parent::parse($string);
+    }
+
+    /**
+     * Parse a grammar with the current path set.
+     *
+     * The current path is used to resolve the path to included files.
+     *
+     * @param string $string
+     * @param string $path
+     *
+     * @return Grammar
+     * @throws \Exception
+     */
+    public function parseWithCurrentPath(string $string, string $path): Grammar
+    {
+        $prevPath = $this->currentPath;
+        $this->currentPath = $path;
+        try {
+            $result = $this->parse($string);
+            $this->currentPath = $path;
+            return $result;
+        } catch (\Exception $e) {
+            $this->currentPath = $prevPath;
+            throw new \Exception($e->getMessage() . ' in ' . $path, $e->getCode());
+        }
+    }
+
+    /**
+     * @param $items
+     *
+     * @return Grammar
+     * @throws \Exception
+     */
     protected function reduceGrammar($items)
     {
         $grammar = new Grammar();
@@ -25,6 +86,11 @@ final class NanoGramParser extends AbstractNanoGramParser
                 $grammar->tokens[$item[1]] = $def;
             } elseif ($def instanceof OperatorInfo) {
                 $grammar->operators[$item[1]] = $def;
+            } elseif ($def instanceof Grammar) {
+                // Included grammar; merge it!
+                $grammar->tokens = array_merge($grammar->tokens, $def->tokens);
+                $grammar->operators = array_merge($grammar->operators, $def->operators);
+                $grammar->rules = array_merge($grammar->rules, $def->rules);
             } elseif ($def === self::INTERMEDIATE_RULESET) {
                 foreach ($item[1] as $rule) {
                     $grammar->rules[] = $rule;
@@ -148,6 +214,26 @@ final class NanoGramParser extends AbstractNanoGramParser
     protected function reduceReduceActionPointer($p1)
     {
         return $p1[1];
+    }
+
+    /**
+     * @param $p0
+     * @param $p1
+     * @param $path
+     *
+     * @return array
+     *
+     * @throws \Exception
+     *   If the current path is not set.
+     */
+    protected function reduceInclude($p0, $p1, $path)
+    {
+        if ($this->currentPath === null) {
+            throw new \Exception('Cannot load includes if current path is not set');
+        }
+        $fullPath = dirname($this->currentPath) . DIRECTORY_SEPARATOR . $path[0];
+        $grammar = $this->parseFile($fullPath);
+        return [$grammar];
     }
 
 }

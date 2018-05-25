@@ -2,6 +2,7 @@ token TOKEN token
 token REGEX regex
 token ESCAPED escaped
 token OPERATOR operator
+token INCLUDE include
 regex INTEGER [0-9]+
 token LEFT left
 token RIGHT right
@@ -35,6 +36,7 @@ Item -> TokenDef { reduceIdentity }
 Item -> OperatorDef { reduceIdentity }
 Item -> RuleSet { reduceIdentity }
 Item -> COMMENT { reduceComment }
+Item -> Include { reduceIdentity }
 
 ;
 ; Tokens.
@@ -75,3 +77,8 @@ ReduceActionArgs -> ExpressionPointer { reduceArrayOf }
 ReduceActionArgs -> ReduceActionArgs COMMA SPACE ExpressionPointer { reduceReduceActionArgs }
 
 ExpressionPointer -> EXPRESSION_POINTER { reduceReduceActionPointer }
+
+;
+; Includes.
+;
+Include -> INCLUDE SPACE ROL { reduceInclude }
