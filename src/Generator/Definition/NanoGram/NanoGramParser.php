@@ -125,11 +125,33 @@ final class NanoGramParser extends AbstractNanoGramParser
 
     protected function reduceTokenDef($type, $p2, $name, $p4, $pattern)
     {
-        $patternData = $pattern[0];
-        if (isset($type[1]) && $type[1] === 'escaped') {
-            $patternData = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $patternData);
+        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $pattern[0]), $name[0]];
+    }
+
+    protected function reduceEscapedTokenDef($p0, $p1, $tokenData)
+    {
+        /** @var TokenInfo $token */
+        $token = $tokenData[0];
+        if (isset ($tokenData[2])) {
+            throw new \Exception('Duplicate escape flag for token ' . $tokenData[1]);
         }
-        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $patternData), $name[0]];
+        if ($token->type === TokenInfo::TYPE_REGEX) {
+            throw new \Exception('Escaped tokens cannot be regex (regex is self-escaping)');
+        }
+        $token->pattern = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $token->pattern);
+        $tokenData[] = 'escaped';
+        return $tokenData;
+    }
+
+    protected function reduceWhitespaceTokenDef($p0, $p1, $tokenData)
+    {
+        /** @var TokenInfo $token */
+        $token = $tokenData[0];
+        if ($token->isWhitespace) {
+            throw new \Exception('Duplicate whitespace flag for token ' . $tokenData[1]);
+        }
+        $token->isWhitespace = true;
+        return $tokenData;
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)
@@ -188,11 +210,6 @@ final class NanoGramParser extends AbstractNanoGramParser
     {
         $p1[] = $p3[0];
         return $p1;
-    }
-
-    protected function reduceEscapedTokenType($p1, $p2, $p3)
-    {
-        return ['token', 'escaped'];
     }
 
     protected function reduceCallReduceAction($name, $p2 = null, $args = null, $p4 = null)

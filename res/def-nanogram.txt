@@ -1,6 +1,7 @@
 token TOKEN token
 token REGEX regex
 token ESCAPED escaped
+token WHITESPACE whitespace
 token OPERATOR operator
 token INCLUDE include
 regex INTEGER [0-9]+
@@ -42,8 +43,9 @@ Item -> Include { reduceIdentity }
 ; Tokens.
 ;
 TokenDef -> TokenType SPACE NAME SPACE ROL { reduceTokenDef }
+TokenDef -> ESCAPED SPACE TokenDef { reduceEscapedTokenDef }
+TokenDef -> WHITESPACE SPACE TokenDef { reduceWhitespaceTokenDef }
 TokenType -> TOKEN { reduceIdentity }
-TokenType -> ESCAPED SPACE TOKEN { reduceEscapedTokenType }
 TokenType -> REGEX { reduceIdentity }
 
 ;

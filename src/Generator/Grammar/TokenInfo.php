@@ -24,13 +24,23 @@ class TokenInfo
     public $pattern;
 
     /**
+     * Whether this token is whitespace.
+     *
+     * @var bool
+     *   True if the token is whitespace.
+     */
+    public $isWhitespace;
+
+    /**
      * TokenInfo constructor.
      * @param int $type
      * @param string $pattern
+     * @param bool $isWhitespace
      */
-    public function __construct(int $type, string $pattern)
+    public function __construct(int $type, string $pattern, bool $isWhitespace = false)
     {
         $this->type = $type;
         $this->pattern = $pattern;
+        $this->isWhitespace = $isWhitespace;
     }
 }
