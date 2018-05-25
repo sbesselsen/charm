@@ -10,14 +10,12 @@
         }
     ],
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=7.1.0",
+        "nikic/php-parser": "^4.0"
     },
     "autoload": {
          "psr-4": {
              "Charm\\": "src/"
          }
-    },
-    "require-dev": {
-        "nikic/php-parser": "^4.0"
     }
 }
