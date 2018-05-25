@@ -60,7 +60,7 @@ final class NanoGramParser extends AbstractNanoGramParser
         $this->currentPath = $path;
         try {
             $result = $this->parse($string);
-            $this->currentPath = $path;
+            $this->currentPath = $prevPath;
             return $result;
         } catch (\Exception $e) {
             $this->currentPath = $prevPath;
