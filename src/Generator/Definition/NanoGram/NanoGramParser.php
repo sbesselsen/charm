@@ -102,6 +102,9 @@ final class NanoGramParser extends AbstractNanoGramParser
                     $grammar->tokens = array_merge($grammar->tokens, $item[1]->tokens);
                     $grammar->operators = array_merge($grammar->operators, $item[1]->operators);
                     $grammar->rules = array_merge($grammar->rules, $item[1]->rules);
+                    if ($item[1]->whitespace !== null) {
+                        $grammar->whitespace = $item[1]->whitespace;
+                    }
                     break;
                 case self::ITEM_WHITESPACE:
                     $grammar->whitespace = $item[1];
