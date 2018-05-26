@@ -6,6 +6,7 @@ class TokenInfo
 {
     const TYPE_STRING = 0;
     const TYPE_REGEX = 1;
+    const TYPE_CHARS = 2;
 
     /**
      * The type.

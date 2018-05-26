@@ -39,6 +39,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     const VARIABLE_LENGTH = 'l';
     const VARIABLE_STRING = 'string';
     const VARIABLE_MATCH = 'm';
+    const VARIABLE_MATCH_LENGTH = 'ml';
     const VARIABLE_REDUCE_INPUT_PREFIX = 'r';
     const VARIABLE_ERROR_LINES = 'els';
     const VARIABLE_ERROR_LINE = 'el';
@@ -394,6 +395,31 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                     ),
                     new Array_([new ArrayItem(new String_($tokenInfo->pattern))]),
                     new LNumber(strlen($tokenInfo->pattern), ['kind' => LNumber::KIND_DEC])
+                ];
+            case TokenInfo::TYPE_CHARS:
+                return [
+                    new Expr\BinaryOp\Greater(
+                        new Assign(
+                            new Variable(self::VARIABLE_MATCH_LENGTH),
+                            new FuncCall(new Name('strspn'), [
+                                new Variable(self::VARIABLE_STRING),
+                                new String_($tokenInfo->pattern),
+                                new Variable(self::VARIABLE_OFFSET),
+                            ])
+                        ),
+                        LNumber::fromString('0')
+                    ),
+                    new Array_([
+                        new FuncCall(
+                            new Name('substr'),
+                            [
+                                new Variable(self::VARIABLE_STRING),
+                                new Variable(self::VARIABLE_OFFSET),
+                                new Variable(self::VARIABLE_MATCH_LENGTH)
+                            ]
+                        )
+                    ]),
+                    new Variable(self::VARIABLE_MATCH_LENGTH)
                 ];
             case TokenInfo::TYPE_REGEX:
             default:

@@ -129,7 +129,20 @@ final class NanoGramParser extends AbstractNanoGramParser
         if (isset($type[1]) && $type[1] === 'escaped') {
             $patternData = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $patternData);
         }
-        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $patternData), $name[0]];
+        $tokenType = null;
+        switch ($type[0]) {
+            case 'chars':
+                $tokenType = TokenInfo::TYPE_CHARS;
+                break;
+            case 'regex':
+                $tokenType = TokenInfo::TYPE_REGEX;
+                break;
+            case 'token':
+            default:
+                $tokenType = TokenInfo::TYPE_STRING;
+                break;
+        }
+        return [new TokenInfo($tokenType, $patternData), $name[0]];
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)
@@ -151,15 +164,6 @@ final class NanoGramParser extends AbstractNanoGramParser
         return [new OperatorInfo((int)$precedence[0], $assocType), $name[0]];
     }
 
-    /*
-    protected function reduceRuleDef($output, $p2, $p3, $p4, $sequence, $p6 = null, $p7 = null, $p8 = null, $reduceAction = null, $p10 = null, $p11 = null)
-    {
-        if ($reduceAction === null) {
-            $reduceAction = new CopyReduceAction(0);
-        }
-        return [new Rule($output[0], $sequence, $reduceAction)];
-    }
-    */
     protected function reduceRuleSet($name, $p1, $p2, $p3, $rhsList)
     {
         $rules = [];
@@ -193,6 +197,11 @@ final class NanoGramParser extends AbstractNanoGramParser
     protected function reduceEscapedTokenType($p1, $p2, $p3)
     {
         return ['token', 'escaped'];
+    }
+
+    protected function reduceEscapedCharsType($p0, $p1, $p2)
+    {
+        return ['chars', 'escaped'];
     }
 
     protected function reduceCallReduceAction($name, $p2 = null, $args = null, $p4 = null)
