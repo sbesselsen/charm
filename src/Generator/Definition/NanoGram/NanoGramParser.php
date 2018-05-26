@@ -11,7 +11,11 @@ use Charm\Generator\Grammar\TokenInfo;
 
 final class NanoGramParser extends AbstractNanoGramParser
 {
-    const INTERMEDIATE_RULESET = 'ruleset';
+    const ITEM_RULESET = 'ruleset';
+    const ITEM_INCLUDE = 'include';
+    const ITEM_TOKEN = 'token';
+    const ITEM_WHITESPACE = 'whitespace';
+    const ITEM_OPERATOR = 'operator';
 
     private $currentPath = NULL;
 
@@ -81,20 +85,25 @@ final class NanoGramParser extends AbstractNanoGramParser
             if ($item === null) {
                 continue;
             }
-            [$def] = $item;
-            if ($def instanceof TokenInfo) {
-                $grammar->tokens[$item[1]] = $def;
-            } elseif ($def instanceof OperatorInfo) {
-                $grammar->operators[$item[1]] = $def;
-            } elseif ($def instanceof Grammar) {
-                // Included grammar; merge it!
-                $grammar->tokens = array_merge($grammar->tokens, $def->tokens);
-                $grammar->operators = array_merge($grammar->operators, $def->operators);
-                $grammar->rules = array_merge($grammar->rules, $def->rules);
-            } elseif ($def === self::INTERMEDIATE_RULESET) {
-                foreach ($item[1] as $rule) {
-                    $grammar->rules[] = $rule;
-                }
+            switch ($item[0]) {
+                case self::ITEM_TOKEN:
+                    $grammar->tokens[$item[2]] = $item[1];
+                    break;
+                case self::ITEM_OPERATOR:
+                    $grammar->operators[$item[2]] = $item[1];
+                    break;
+                case self::ITEM_RULESET:
+                    foreach ($item[1] as $rule) {
+                        $grammar->rules[] = $rule;
+                    }
+                    break;
+                case self::ITEM_INCLUDE:
+                    $grammar->tokens = array_merge($grammar->tokens, $item[1]->tokens);
+                    $grammar->operators = array_merge($grammar->operators, $item[1]->operators);
+                    $grammar->rules = array_merge($grammar->rules, $item[1]->rules);
+                    break;
+                case self::ITEM_WHITESPACE:
+                    $grammar->whitespaceToken = $item[1];
             }
         }
         return $grammar;
@@ -138,19 +147,24 @@ final class NanoGramParser extends AbstractNanoGramParser
                 $tokenType = TokenInfo::TYPE_STRING;
                 break;
         }
-        return [new TokenInfo($tokenType, $pattern[0], false), $name[0]];
+        return [self::ITEM_TOKEN, new TokenInfo($tokenType, $pattern[0], false), $name[0]];
     }
 
     protected function reduceEscapedToken($p0, $p1, $token)
     {
-        $token[0]->pattern = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $token[0]->pattern);
+        $token[1]->pattern = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $token[1]->pattern);
         return $token;
     }
 
     protected function reduceExactToken($p0, $p1, $token)
     {
-        $token[0]->exact = true;
+        $token[1]->exact = true;
         return $token;
+    }
+
+    protected function reduceWhitespaceDef($p0, $p1, $tokenName)
+    {
+        return [self::ITEM_WHITESPACE, $tokenName[0]];
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)
@@ -169,7 +183,7 @@ final class NanoGramParser extends AbstractNanoGramParser
                     break;
             }
         }
-        return [new OperatorInfo((int)$precedence[0], $assocType), $name[0]];
+        return [self::ITEM_OPERATOR, new OperatorInfo((int)$precedence[0], $assocType), $name[0]];
     }
 
     protected function reduceRuleSet($name, $p1, $p2, $p3, $rhsList)
@@ -178,7 +192,7 @@ final class NanoGramParser extends AbstractNanoGramParser
         foreach ($rhsList as $rhs) {
             $rules[] = new Rule($name[0], $rhs[0], $rhs[1]);
         }
-        return [self::INTERMEDIATE_RULESET, $rules];
+        return [self::ITEM_RULESET, $rules];
     }
 
     protected function reduceRuleRhsList($list, $p1, $p2, $rhs)
@@ -240,7 +254,7 @@ final class NanoGramParser extends AbstractNanoGramParser
         }
         $fullPath = dirname($this->currentPath) . DIRECTORY_SEPARATOR . $path[0];
         $grammar = $this->parseFile($fullPath);
-        return [$grammar];
+        return [self::ITEM_INCLUDE, $grammar];
     }
 
 }

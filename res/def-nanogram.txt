@@ -5,6 +5,7 @@ token ESCAPED escaped
 token EXACT exact
 token OPERATOR operator
 token INCLUDE include
+token WHITESPACE whitespace
 regex INTEGER [0-9]+
 token LEFT left
 token RIGHT right
@@ -39,6 +40,7 @@ Item -> OperatorDef { reduceIdentity }
 Item -> RuleSet { reduceIdentity }
 Item -> COMMENT { reduceComment }
 Item -> Include { reduceIdentity }
+Item -> WhitespaceDef { reduceIdentity }
 
 ;
 ; Tokens.
@@ -53,6 +55,11 @@ EscapedTokenDef -> ESCAPED SPACE ExactTokenDef { reduceEscapedToken }
 TokenType -> TOKEN { reduceIdentity }
 TokenType -> REGEX { reduceIdentity }
 TokenType -> CHARS { reduceIdentity }
+
+;
+; Whitespace definition.
+;
+WhitespaceDef -> WHITESPACE SPACE NAME { reduceWhitespaceDef }
 
 ;
 ; Operators.

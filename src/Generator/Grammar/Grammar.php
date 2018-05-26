@@ -27,4 +27,12 @@ class Grammar
      *   Array of (operator name => OperatorInfo)
      */
     public $operators = [];
+
+    /**
+     * The whitespace token, if any.
+     *
+     * @var string|null
+     *   The whitespace token name.
+     */
+    public $whitespaceToken;
 }
