@@ -180,6 +180,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             )
         );
 
+        if ($grammar->whitespace !== null && $grammar->whitespace->allowAtStart) {
+            $output = array_merge($output, $this->generateSkipWhitespaceCode($grammar));
+        }
+
         // Go to state 0.
         $output[] = new Stmt\Goto_(self::LABEL_STATE_PREFIX . '0');
 
@@ -244,7 +248,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
                 [$test, $matchExpr, $shiftLengthExpr] = $this->generateTokenTest($grammar->tokens[$token]);
                 $if = new Stmt\If_($test);
-                $if->stmts = $this->generateShiftCode($shiftStateIndex, $matchExpr, $shiftLengthExpr);
+                $if->stmts = $this->generateShiftCode($grammar, $token, $shiftStateIndex, $matchExpr, $shiftLengthExpr);
                 $tokenCheckStmts[] = $if;
             }
         }
@@ -262,13 +266,17 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     }
 
     /**
+     * @param Grammar $grammar
+     * @param string $token
      * @param int $toStateIndex
      * @param Expr $matchExpr
      * @param Expr $shiftLengthExpr
      *
      * @return Stmt[]
+     * @throws \Exception
+     *   If the grammar has inconsistencies.
      */
-    private function generateShiftCode(int $toStateIndex, Expr $matchExpr, Expr $shiftLengthExpr): array
+    private function generateShiftCode(Grammar $grammar, string $token, int $toStateIndex, Expr $matchExpr, Expr $shiftLengthExpr): array
     {
         $output = [];
 
@@ -294,6 +302,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                 $shiftLengthExpr
             )
         );
+
+        if (!$grammar->tokens[$token]->exact) {
+            $output = array_merge($output, $this->generateSkipWhitespaceCode($grammar));
+        }
 
         $output[] = new Stmt\Goto_(self::LABEL_STATE_PREFIX . $toStateIndex);
 
@@ -590,5 +602,38 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         }
 
         return [$stmts, $gotoLabelMap];
+    }
+
+    /**
+     * @param Grammar $grammar
+     * @return Stmt[]
+     *
+     * @throws \Exception
+     *   If an invalid whitespace token is defined.
+     */
+    private function generateSkipWhitespaceCode(Grammar $grammar)
+    {
+        $output = [];
+        if ($grammar->whitespace === null) {
+            return $output;
+        }
+        $token = $grammar->whitespace->token;
+        if (!isset ($grammar->tokens[$token])) {
+            throw new \Exception('Unknown whitespace token: ' . $token);
+        }
+
+        $tokenInfo = $grammar->tokens[$token];
+
+        [$testExpr, , $shiftOffsetExpr] = $this->generateTokenTest($tokenInfo);
+        $if = new Stmt\If_($testExpr);
+        $output[] = $if;
+        $if->stmts[] = new Stmt\Expression(
+            new Expr\AssignOp\Plus(
+                new Variable(self::VARIABLE_OFFSET),
+                $shiftOffsetExpr
+            )
+        );
+
+        return $output;
     }
 }
