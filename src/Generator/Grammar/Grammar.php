@@ -29,10 +29,10 @@ class Grammar
     public $operators = [];
 
     /**
-     * The whitespace token, if any.
+     * The whitespace info.
      *
-     * @var string|null
-     *   The whitespace token name.
+     * @var WhitespaceInfo|null
+     *   Info about whitespace (if allowed).
      */
-    public $whitespaceToken;
+    public $whitespace;
 }

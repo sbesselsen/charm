@@ -6,6 +6,7 @@ token EXACT exact
 token OPERATOR operator
 token INCLUDE include
 token WHITESPACE whitespace
+token NOSTART nostart
 regex INTEGER [0-9]+
 token LEFT left
 token RIGHT right
@@ -60,6 +61,7 @@ TokenType -> CHARS { reduceIdentity }
 ; Whitespace definition.
 ;
 WhitespaceDef -> WHITESPACE SPACE NAME { reduceWhitespaceDef }
+WhitespaceDef -> WHITESPACE SPACE NAME SPACE NOSTART { reduceWhitespaceDef }
 
 ;
 ; Operators.

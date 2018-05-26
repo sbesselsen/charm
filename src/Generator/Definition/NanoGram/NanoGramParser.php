@@ -8,6 +8,7 @@ use Charm\Generator\Grammar\Reduce\CallReduceAction;
 use Charm\Generator\Grammar\Reduce\CopyReduceAction;
 use Charm\Generator\Grammar\Rule;
 use Charm\Generator\Grammar\TokenInfo;
+use Charm\Generator\Grammar\WhitespaceInfo;
 
 final class NanoGramParser extends AbstractNanoGramParser
 {
@@ -103,7 +104,7 @@ final class NanoGramParser extends AbstractNanoGramParser
                     $grammar->rules = array_merge($grammar->rules, $item[1]->rules);
                     break;
                 case self::ITEM_WHITESPACE:
-                    $grammar->whitespaceToken = $item[1];
+                    $grammar->whitespace = $item[1];
             }
         }
         return $grammar;
@@ -162,9 +163,9 @@ final class NanoGramParser extends AbstractNanoGramParser
         return $token;
     }
 
-    protected function reduceWhitespaceDef($p0, $p1, $tokenName)
+    protected function reduceWhitespaceDef($p0, $p1, $tokenName, $p3 = NULL, $nostart = NULL)
     {
-        return [self::ITEM_WHITESPACE, $tokenName[0]];
+        return [self::ITEM_WHITESPACE, new WhitespaceInfo($tokenName[0], $nostart === null)];
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)
