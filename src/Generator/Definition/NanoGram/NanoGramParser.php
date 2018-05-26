@@ -125,10 +125,6 @@ final class NanoGramParser extends AbstractNanoGramParser
 
     protected function reduceTokenDef($type, $p2, $name, $p4, $pattern)
     {
-        $patternData = $pattern[0];
-        if (isset($type[1]) && $type[1] === 'escaped') {
-            $patternData = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $patternData);
-        }
         $tokenType = null;
         switch ($type[0]) {
             case 'chars':
@@ -142,7 +138,19 @@ final class NanoGramParser extends AbstractNanoGramParser
                 $tokenType = TokenInfo::TYPE_STRING;
                 break;
         }
-        return [new TokenInfo($tokenType, $patternData), $name[0]];
+        return [new TokenInfo($tokenType, $pattern[0], false), $name[0]];
+    }
+
+    protected function reduceEscapedToken($p0, $p1, $token)
+    {
+        $token[0]->pattern = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $token[0]->pattern);
+        return $token;
+    }
+
+    protected function reduceExactToken($p0, $p1, $token)
+    {
+        $token[0]->exact = true;
+        return $token;
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)
@@ -192,16 +200,6 @@ final class NanoGramParser extends AbstractNanoGramParser
     {
         $p1[] = $p3[0];
         return $p1;
-    }
-
-    protected function reduceEscapedTokenType($p1, $p2, $p3)
-    {
-        return ['token', 'escaped'];
-    }
-
-    protected function reduceEscapedCharsType($p0, $p1, $p2)
-    {
-        return ['chars', 'escaped'];
     }
 
     protected function reduceCallReduceAction($name, $p2 = null, $args = null, $p4 = null)

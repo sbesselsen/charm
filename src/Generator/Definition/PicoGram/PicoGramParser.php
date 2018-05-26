@@ -58,7 +58,7 @@ final class PicoGramParser extends AbstractPicoGramParser
         if (isset($type[1]) && $type[1] === 'escaped') {
             $patternData = str_replace(['\n', '\r', '\t', '\s'], ["\n", "\r", "\t", ' '], $patternData);
         }
-        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $patternData), $name[0]];
+        return [new TokenInfo($type[0] === 'token' ? TokenInfo::TYPE_STRING : TokenInfo::TYPE_REGEX, $patternData, true), $name[0]];
     }
 
     protected function reduceOperatorDef($p1, $p2, $name, $p4, $precedence, $p6 = null, $assoc = null)
