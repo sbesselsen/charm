@@ -43,12 +43,16 @@ Item -> Include { reduceIdentity }
 ;
 ; Tokens.
 ;
-TokenDef -> TokenType SPACE NAME SPACE ROL { reduceTokenDef }
+TokenDef -> DirectTokenDef { reduceIdentity }
+TokenDef -> ExactTokenDef { reduceIdentity }
+TokenDef -> EscapedTokenDef { reduceIdentity }
+DirectTokenDef -> TokenType SPACE NAME SPACE ROL { reduceTokenDef }
+ExactTokenDef -> EXACT SPACE DirectTokenDef { reduceExactToken }
+EscapedTokenDef -> ESCAPED SPACE DirectTokenDef { reduceEscapedToken }
+EscapedTokenDef -> ESCAPED SPACE ExactTokenDef { reduceEscapedToken }
 TokenType -> TOKEN { reduceIdentity }
 TokenType -> REGEX { reduceIdentity }
 TokenType -> CHARS { reduceIdentity }
-TokenDef -> ESCAPED SPACE TokenDef { reduceEscapedToken }
-TokenDef -> EXACT SPACE TokenDef { reduceExactToken }
 
 ;
 ; Operators.
