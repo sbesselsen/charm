@@ -53,7 +53,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect COMMENT (;[^\\n]*), operator, NAME ([a-zA-Z_][a-zA-Z_0-9]*), token, escaped or regex at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect COMMENT (;[^\\n]*), OPERATOR (operator), NAME ([a-zA-Z_][a-zA-Z_0-9]*), TOKEN (token), ESCAPED (escaped) or REGEX (regex) at line ' . $el . ', column ' . $ec);
         st1:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -72,7 +72,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect \\n or end of string at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect EOL (\\n) or end of string at line ' . $el . ', column ' . $ec);
         st2:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -92,7 +92,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st3:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -112,7 +112,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st4:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -132,7 +132,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st5:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -152,7 +152,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st6:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -172,7 +172,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st7:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -185,7 +185,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st8:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -198,7 +198,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st9:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -211,7 +211,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st10:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -224,7 +224,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st11:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -237,7 +237,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st12:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -250,7 +250,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st13:
         if ($o === $l) {
             $r1 = array_pop($os);
@@ -310,7 +310,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect COMMENT (;[^\\n]*), operator, NAME ([a-zA-Z_][a-zA-Z_0-9]*), token, escaped, regex, end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect COMMENT (;[^\\n]*), OPERATOR (operator), NAME ([a-zA-Z_][a-zA-Z_0-9]*), TOKEN (token), ESCAPED (escaped), REGEX (regex), end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st14:
         if ($l > $o) {
             if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
@@ -349,7 +349,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect -> at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect ARROW (->) at line ' . $el . ', column ' . $ec);
         st17:
         if ($l > $o) {
             if (substr_compare($string, 'token', $o, 5) === 0) {
@@ -362,7 +362,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect token at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect TOKEN (token) at line ' . $el . ', column ' . $ec);
         st18:
         if ($o === $l) {
             $r2 = array_pop($os);
@@ -390,7 +390,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st19:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -403,7 +403,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st20:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -416,7 +416,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st21:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -429,7 +429,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st22:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -446,7 +446,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st23:
         if ($l > $o) {
             if (preg_match('([^\\n]*)ADs', $string, $m, 0, $o)) {
@@ -521,7 +521,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st27:
         if ($o === $l) {
             $r4 = array_pop($os);
@@ -563,7 +563,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space, end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space), end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st28:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -576,7 +576,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st29:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -589,7 +589,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st30:
         if ($l > $o) {
             if (substr_compare($string, 'left', $o, 4) === 0) {
@@ -614,7 +614,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect left, right or nonassoc at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect LEFT (left), RIGHT (right) or NONASSOC (nonassoc) at line ' . $el . ', column ' . $ec);
         st31:
         if ($l > $o) {
             if (substr_compare($string, '{', $o, 1) === 0) {
@@ -633,7 +633,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect { or NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect CURLY_OPEN ({) or NAME ([a-zA-Z_][a-zA-Z_0-9]*) at line ' . $el . ', column ' . $ec);
         st32:
         if ($o === $l) {
             $r6 = array_pop($os);
@@ -677,7 +677,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st33:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -697,7 +697,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st34:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -717,7 +717,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st35:
         if ($o === $l) {
             $r0 = array_pop($os);
@@ -737,7 +737,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         st36:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -750,7 +750,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st37:
         if ($l > $o) {
             if (substr_compare($string, ' ', $o, 1) === 0) {
@@ -767,7 +767,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st38:
         if ($l > $o) {
             if (preg_match('([a-zA-Z_][a-zA-Z_0-9]*)ADs', $string, $m, 0, $o)) {
@@ -793,7 +793,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect space at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect SPACE (space) at line ' . $el . ', column ' . $ec);
         st40:
         if ($l > $o) {
             if (substr_compare($string, '}', $o, 1) === 0) {
@@ -806,7 +806,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect } at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect CURLY_CLOSE (}) at line ' . $el . ', column ' . $ec);
         st41:
         if ($o === $l) {
             $r10 = array_pop($os);
@@ -866,7 +866,7 @@ abstract class AbstractPicoGramParser
         $els = explode("\n", substr($string, 0, $o));
         $el = count($els);
         $ec = strlen(array_pop($els)) + 1;
-        throw new \Exception('Expect end of string or \\n at line ' . $el . ', column ' . $ec);
+        throw new \Exception('Expect end of string or EOL (\\n) at line ' . $el . ', column ' . $ec);
         gt0:
         switch ($sts[count($sts) - 1]) {
             case 0:

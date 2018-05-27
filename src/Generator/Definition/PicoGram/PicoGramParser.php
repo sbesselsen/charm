@@ -65,7 +65,7 @@ final class PicoGramParser extends AbstractPicoGramParser
     {
         $assocType = null;
         if ($assoc !== null) {
-            switch ($assoc) {
+            switch ($assoc[0]) {
                 case 'left':
                     $assocType = OperatorInfo::ASSOC_LEFT;
                     break;

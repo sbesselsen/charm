@@ -175,7 +175,7 @@ final class NanoGramParser extends AbstractNanoGramParser
     {
         $assocType = null;
         if ($assoc !== null) {
-            switch ($assoc) {
+            switch ($assoc[0]) {
                 case 'left':
                     $assocType = OperatorInfo::ASSOC_LEFT;
                     break;

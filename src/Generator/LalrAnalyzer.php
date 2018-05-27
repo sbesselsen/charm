@@ -322,9 +322,9 @@ final class LalrAnalyzer implements AnalyzerInterface
             }
             $operatorsByPrecedence[$operatorInfo->precedence][$operator] = $operatorInfo;
         }
-        $associativity = NULL;
-        $associativityOperator = NULL;
         foreach ($operatorsByPrecedence as $operators) {
+            $associativity = NULL;
+            $associativityOperator = NULL;
             foreach ($operators as $operator => $operatorInfo) {
                 /** @var OperatorInfo $operatorInfo */
                 if ($associativity === null) {
