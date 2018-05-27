@@ -5,6 +5,7 @@ namespace Charm\Generator;
 use Charm\Generator\Grammar\Grammar;
 use Charm\Generator\Grammar\Reduce\CallReduceAction;
 use Charm\Generator\Grammar\Reduce\CopyReduceAction;
+use Charm\Generator\Grammar\Rule;
 use Charm\Generator\Grammar\TokenInfo;
 use Charm\Generator\Options\CodeGeneratorOptions;
 use Charm\Generator\StateTable\State;
@@ -45,11 +46,14 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     const VARIABLE_ERROR_LINE = 'el';
     const VARIABLE_ERROR_COLUMN = 'ec';
     const VARIABLE_REDUCE_PARAM_PREFIX = 'p';
+    const VARIABLE_MESSAGE = 'message';
 
     const TOKEN_END = '$';
 
     const LABEL_STATE_PREFIX = 'st';
     const LABEL_REDUCE_GOTO_PREFIX = 'gt';
+
+    const METHOD_DEBUG_LOG = 'debugLog';
 
     /**
      * The pretty printer.
@@ -58,6 +62,14 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
      *   The pretty printer.
      */
     private $prettyPrinter;
+
+    /**
+     * The current options.
+     *
+     * @var CodeGeneratorOptions|null
+     *   The current options.
+     */
+    private $currentOptions;
 
     public function __construct()
     {
@@ -79,7 +91,8 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     {
         return (new CodeGeneratorOptions())
             ->setClassName('AbstractParser')
-            ->setNamespace('');
+            ->setNamespace('')
+            ->setDebugMode(false);
     }
 
     public function generate(Grammar $grammar, StateTable $stateTable, CodeGeneratorOptions $options = null): string
@@ -87,12 +100,25 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         if ($options === null) {
             $options = $this->createOptions();
         }
+        $prevOptions = $this->currentOptions;
+        $this->currentOptions = $options;
+        try {
+            $result = $this->generateWithCurrentOptions($grammar, $stateTable);
+            $this->currentOptions = $prevOptions;
+            return $result;
+        } catch (\Exception $e) {
+            $this->currentOptions = $prevOptions;
+            throw new \Exception('', 0, $e);
+        }
+    }
 
+    private function generateWithCurrentOptions(Grammar $grammar, StateTable $stateTable): string
+    {
         $statements = [];
-        if ($namespace = $options->getNamespace()) {
+        if ($namespace = $this->currentOptions->getNamespace()) {
             $statements[] = new Namespace_(new Name($namespace));
         }
-        $class = new Class_($options->getClassName(), ['flags' => Class_::MODIFIER_ABSTRACT]);
+        $class = new Class_($this->currentOptions->getClassName(), ['flags' => Class_::MODIFIER_ABSTRACT]);
 
         // Add the parse method.
         $method = new ClassMethod('parse', ['flags' => Class_::MODIFIER_PUBLIC]);
@@ -135,6 +161,12 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         }
 
         $statements[] = $class;
+
+        if ($this->currentOptions->getDebugMode()) {
+            $method = new ClassMethod(self::METHOD_DEBUG_LOG, ['flags' => Class_::MODIFIER_PROTECTED]);
+            $method->params[] = new Param(new Variable(self::VARIABLE_MESSAGE), null);
+            $class->stmts[] = $method;
+        }
 
         return $this->prettyPrinter->prettyPrintFile($statements);
     }
@@ -185,6 +217,7 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         }
 
         // Go to state 0.
+        $output = array_merge($output, $this->generateDebugLog('Going to state 0'));
         $output[] = new Stmt\Goto_(self::LABEL_STATE_PREFIX . '0');
 
         [$reduceGotoStmts, $gotoLabelMap] = $this->generateReduceGotoCode($stateTable);
@@ -219,7 +252,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         if (isset ($state->reduces[self::TOKEN_END])) {
             $test = $this->generateEndOfStringTest();
             $if = new Stmt\If_($test);
-            $if->stmts = $this->generateReduceCode($grammar, $state->reduces[self::TOKEN_END], $gotoLabelMap);
+            $if->stmts = array_merge(
+                $this->generateDebugLog('Encountered end of string'),
+                $this->generateReduceCode($grammar, $state->reduces[self::TOKEN_END], $gotoLabelMap)
+            );
             $output[] = $if;
         }
 
@@ -238,7 +274,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                 $reduceRuleIndex = $state->reduces[$token];
                 [$test] = $this->generateTokenTest($grammar->tokens[$token]);
                 $if = new Stmt\If_($test);
-                $if->stmts = $this->generateReduceCode($grammar, $reduceRuleIndex, $gotoLabelMap);
+                $if->stmts = array_merge(
+                    $this->generateDebugLog('Encountered ' . $token),
+                    $this->generateReduceCode($grammar, $reduceRuleIndex, $gotoLabelMap)
+                );
                 $tokenCheckStmts[] = $if;
             } elseif (isset ($state->shifts[$token])) {
                 $shiftStateIndex = $state->shifts[$token];
@@ -248,7 +287,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
 
                 [$test, $matchExpr, $shiftLengthExpr] = $this->generateTokenTest($grammar->tokens[$token]);
                 $if = new Stmt\If_($test);
-                $if->stmts = $this->generateShiftCode($grammar, $token, $shiftStateIndex, $matchExpr, $shiftLengthExpr);
+                $if->stmts = array_merge(
+                    $this->generateDebugLog('Encountered '  . $token),
+                    $this->generateShiftCode($grammar, $token, $shiftStateIndex, $matchExpr, $shiftLengthExpr)
+                );
                 $tokenCheckStmts[] = $if;
             }
         }
@@ -279,6 +321,8 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
     private function generateShiftCode(Grammar $grammar, string $token, int $toStateIndex, Expr $matchExpr, Expr $shiftLengthExpr): array
     {
         $output = [];
+
+        $output = array_merge($output, $this->generateDebugLog('Shifting to state ' . $toStateIndex));
 
         // Push new state on the stack.
         $output[] = new Stmt\Expression(
@@ -327,6 +371,11 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         $output = [];
 
         $rule = $grammar->rules[$reduceRuleIndex];
+
+        $output = array_merge(
+            $output,
+            $this->generateDebugLog('Reducing by rule ' . $reduceRuleIndex . ' (' . $this->stringifyRule($grammar->rules[$reduceRuleIndex]) . ')')
+        );
 
         foreach (array_reverse(array_keys($rule->input)) as $reduceVarIndex) {
             $output[] = new Stmt\Expression(
@@ -482,9 +531,10 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
             $tokenInfo = $grammar->tokens[$token];
             switch ($tokenInfo->type) {
                 case TokenInfo::TYPE_STRING:
-                    $tokenDescriptions[] = str_replace(["\n", "\r", "\t", " "], ['\n', '\r', '\t', 'space'], $tokenInfo->pattern);
+                    $tokenDescriptions[] = $token . ' (' . str_replace(["\n", "\r", "\t", " "], ['\n', '\r', '\t', 'space'], $tokenInfo->pattern) . ')';
                     break;
                 case TokenInfo::TYPE_REGEX:
+                case TokenInfo::TYPE_CHARS:
                     $tokenDescriptions[] = $token . ' (' . $tokenInfo->pattern . ')';
                     break;
             }
@@ -596,6 +646,11 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
                             new LNumber($reduceState->gotos[$nonTerminalKey], ['kind' => LNumber::KIND_DEC])
                         )
                     );
+
+                    $case->stmts = array_merge(
+                        $case->stmts,
+                        $this->generateDebugLog('Going to state ' . $reduceState->gotos[$nonTerminalKey])
+                    );
                     $case->stmts[] = new Stmt\Goto_(self::LABEL_STATE_PREFIX . $reduceState->gotos[$nonTerminalKey]);
                 }
             }
@@ -635,5 +690,34 @@ final class PhpCodeGenerator implements CodeGeneratorInterface
         );
 
         return $output;
+    }
+
+    /**
+     * @param string $message
+     *
+     * @return Stmt[]
+     */
+    private function generateDebugLog(string $message) {
+        $output = [];
+        if ($this->currentOptions->getDebugMode()) {
+            $output[] = new Stmt\Expression(
+                new Expr\MethodCall(
+                    new Variable('this'),
+                    self::METHOD_DEBUG_LOG,
+                    [
+                        new String_($message)
+                    ]
+                )
+            );
+        }
+        return $output;
+    }
+
+    /**
+     * @param Rule $rule
+     * @return string
+     */
+    private function stringifyRule(Rule $rule): string {
+        return $rule->output . ' -> ' . implode(' ', $rule->input);
     }
 }

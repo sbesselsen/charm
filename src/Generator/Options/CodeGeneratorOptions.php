@@ -20,6 +20,37 @@ class CodeGeneratorOptions
      */
     protected $namespace;
 
+    /**
+     * Whether the parser should be generated in debug mode.
+     *
+     * @var bool
+     *   True if debug ode.
+     */
+    protected $debugMode = false;
+
+    /**
+     * Set whether the parser should be generated in debug mode.
+     *
+     * @param bool $debugMode
+     *
+     * @return $this
+     */
+    public function setDebugMode(bool $debugMode)
+    {
+        $this->debugMode = $debugMode;
+        return $this;
+    }
+
+    /**
+     * Get whether the parser should be generated in debug mode.
+     *
+     * @return bool
+     */
+    public function getDebugMode(): bool
+    {
+        return $this->debugMode;
+    }
+
     public function setClassName(string $className)
     {
         $this->className = $className;
